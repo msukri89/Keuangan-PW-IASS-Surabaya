@@ -6,7 +6,6 @@
     <title>Buku Kas IASS</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        /* Desain Dasar ala iOS */
         :root {
             --bg-color: #F2F2F7;
             --card-bg: #FFFFFF;
@@ -18,171 +17,93 @@
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0; 
-            padding: 20px 15px; 
-            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 0 0 70px 0; -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 450px;
-            margin: auto;
-        }
+        .container { max-width: 450px; margin: auto; padding: 20px 15px; }
 
-        /* Header & Status */
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .header h2 {
-            margin: 10px 0 5px 0;
-            font-weight: 600;
-            color: var(--iass-green);
-        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { margin: 5px 0; font-weight: 600; color: var(--iass-green); }
 
         #statusJaringan { 
-            font-size: 13px;
-            padding: 8px; 
-            text-align: center; 
-            border-radius: 20px; 
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 10px;
+            font-size: 12px; padding: 6px 12px; border-radius: 20px; font-weight: 600;
+            display: inline-block; margin-bottom: 5px;
         }
         .status-online { background-color: #E5F3EB; color: var(--iass-green); }
         .status-offline { background-color: #FCECEB; color: #D73A49; }
 
-        /* Segmented Control (Pilihan Kas) ala iOS */
+        /* Segmented Control Kas */
         .segmented-control {
-            display: flex;
-            background-color: #E3E3E8;
-            border-radius: 8px;
-            padding: 3px;
-            margin-bottom: 25px;
+            display: flex; background-color: #E3E3E8; border-radius: 8px;
+            padding: 3px; margin-bottom: 20px;
         }
         .segmented-control input[type="radio"] { display: none; }
         .segmented-control label {
-            flex: 1;
-            text-align: center;
-            padding: 8px 0;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-main);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
+            flex: 1; text-align: center; padding: 8px 0; font-size: 14px;
+            font-weight: 500; border-radius: 6px; cursor: pointer; transition: 0.2s;
         }
         .segmented-control input[type="radio"]:checked + label {
-            background-color: var(--card-bg);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            color: var(--iass-orange);
-            font-weight: 600;
+            background-color: var(--card-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: var(--iass-orange); font-weight: 600;
         }
 
-        /* Form Group / Cards */
-        .form-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        /* Cards & Forms */
+        .card {
+            background-color: var(--card-bg); border-radius: 12px;
+            overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        
-        .form-row {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
+        .form-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); }
         .form-row:last-child { border-bottom: none; }
+        .form-row label { width: 35%; font-size: 15px; font-weight: 500; }
+        .form-input-container { width: 65%; display: flex; flex-direction: column; }
         
-        .form-row label {
-            width: 35%;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        
-        .form-input-container {
-            width: 65%;
-            display: flex;
-            flex-direction: column;
-        }
-
         input[type="text"], input[type="number"], input[type="date"] {
-            width: 100%;
-            border: none;
-            font-size: 16px;
-            outline: none;
-            background: transparent;
-            text-align: right;
-            color: var(--text-main);
+            width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent;
         }
-        
-        input::placeholder { color: var(--text-muted); }
+        .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
+        .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+        .radio-group input[type="radio"] { margin-right: 5px; accent-color: var(--iass-orange); transform: scale(1.2); }
 
-        #hijriInfo { 
-            font-size: 12px; 
-            color: var(--iass-green); 
-            text-align: right;
-            margin-top: 4px;
-            font-weight: 500;
+        button.btn-primary {
+            width: 100%; background-color: var(--iass-orange); color: white; border: none;
+            border-radius: 12px; font-weight: 600; font-size: 16px; padding: 14px; cursor: pointer;
         }
+        button.btn-primary:disabled { opacity: 0.6; }
 
-        /* Radio Buttons (Masuk/Keluar) */
-        .radio-group {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-        .radio-group label {
-            width: auto;
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-            color: var(--text-main);
-            cursor: pointer;
-        }
-        .radio-group input[type="radio"] {
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            margin-right: 6px;
-            outline: none;
-            position: relative;
-        }
-        .radio-group input[type="radio"]:checked {
-            border-color: var(--iass-orange);
-        }
-        .radio-group input[type="radio"]:checked::after {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 10px;
-            height: 10px;
-            background-color: var(--iass-orange);
-            border-radius: 50%;
-        }
+        /* Dashboard Summary */
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .summary-box { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .summary-box.full { grid-column: span 2; background-color: var(--iass-green); color: white; }
+        .summary-box p { margin: 0; font-size: 12px; color: var(--text-muted); }
+        .summary-box.full p { color: #E5F3EB; }
+        .summary-box h3 { margin: 5px 0 0 0; font-size: 18px; }
+        .text-masuk { color: var(--iass-green); }
+        .text-keluar { color: #D73A49; }
 
-        /* Button Simpan */
-        button[type="submit"] {
-            width: 100%;
-            background-color: var(--iass-orange);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 17px;
-            padding: 14px;
-            cursor: pointer;
-            transition: opacity 0.2s;
+        /* History List */
+        .history-filters { display: flex; gap: 10px; padding: 15px; background: var(--card-bg); border-radius: 12px; margin-bottom: 10px; align-items: center; justify-content: space-between;}
+        .history-filters input { text-align: left; font-size: 13px; padding: 5px;}
+        .history-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .history-item:last-child { border-bottom: none; }
+        .history-info p { margin: 0; font-size: 14px; font-weight: 500;}
+        .history-info small { color: var(--text-muted); font-size: 12px;}
+        .history-amount { font-weight: 600; font-size: 15px;}
+
+        /* Tab Navigation Bottom */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg);
+            display: flex; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom);
         }
-        button[type="submit"]:active { opacity: 0.8; }
-        button:disabled { background-color: #fbd6b1; cursor: not-allowed; }
+        .nav-item {
+            flex: 1; text-align: center; padding: 12px 0; color: var(--text-muted);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+        }
+        .nav-item.active { color: var(--iass-green); border-top: 2px solid var(--iass-green); }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
 
     </style>
 </head>
@@ -190,116 +111,238 @@
     <div class="container">
         <div class="header">
             <div id="statusJaringan" class="status-online">Online</div>
-            <h2>Pencatatan Kas</h2>
+            <h2 id="pageTitle">Input Kas Baru</h2>
         </div>
-        
-        <form id="kasForm">
-            <!-- Pemilih Kategori Kas -->
+
+        <!-- VIEW: INPUT TRANSAKSI -->
+        <div id="viewInput" class="view-section active">
             <div class="segmented-control">
-                <input type="radio" id="catPW" name="kategori" value="KAS PW" checked>
-                <label for="catPW">Kas PW</label>
-                
-                <input type="radio" id="catMobil" name="kategori" value="KAS MOBIL">
-                <label for="catMobil">Kas Mobil</label>
+                <input type="radio" id="catPW_in" name="kategori_in" value="KAS PW" checked onchange="updateGlobalCategory()">
+                <label for="catPW_in">Kas PW</label>
+                <input type="radio" id="catMobil_in" name="kategori_in" value="KAS MOBIL" onchange="updateGlobalCategory()">
+                <label for="catMobil_in">Kas Mobil</label>
             </div>
 
-            <!-- Form Input -->
-            <div class="form-card">
-                <div class="form-row">
-                    <label>Tanggal</label>
-                    <div class="form-input-container">
-                        <input type="date" id="tanggal" required>
-                        <span id="hijriInfo"></span>
+            <form id="kasForm">
+                <div class="card">
+                    <div class="form-row">
+                        <label>Tanggal</label>
+                        <div class="form-input-container">
+                            <input type="date" id="tanggal" required>
+                            <span id="hijriInfo" style="font-size:12px; color:var(--iass-green); text-align:right; margin-top:4px;"></span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="form-row">
-                    <label>Uraian</label>
-                    <div class="form-input-container">
-                        <input type="text" id="uraian" required placeholder="Contoh: Beli ATK">
+                    <div class="form-row">
+                        <label>Uraian</label>
+                        <div class="form-input-container">
+                            <input type="text" id="uraian" required placeholder="Contoh: Beli ATK">
+                        </div>
                     </div>
-                </div>
-
-                <div class="form-row">
-                    <label>Jenis</label>
-                    <div class="form-input-container">
-                        <div class="radio-group">
-                            <label><input type="radio" name="jenis" value="masuk" required> Masuk</label>
-                            <label><input type="radio" name="jenis" value="keluar"> Keluar</label>
+                    <div class="form-row">
+                        <label>Jenis</label>
+                        <div class="form-input-container">
+                            <div class="radio-group">
+                                <label><input type="radio" name="jenis" value="masuk" required> Masuk</label>
+                                <label><input type="radio" name="jenis" value="keluar"> Keluar</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>Nominal</label>
+                        <div class="form-input-container">
+                            <input type="number" id="nominal" required placeholder="Rp 0">
                         </div>
                     </div>
                 </div>
+                <button type="submit" class="btn-primary" id="btnSimpan">Simpan Transaksi</button>
+            </form>
+        </div>
 
-                <div class="form-row">
-                    <label>Nominal</label>
-                    <div class="form-input-container">
-                        <input type="number" id="nominal" required placeholder="Rp 0">
-                    </div>
+        <!-- VIEW: RIWAYAT & RINGKASAN -->
+        <div id="viewRiwayat" class="view-section">
+            <div class="segmented-control">
+                <input type="radio" id="catPW_out" name="kategori_out" value="KAS PW" checked onchange="updateGlobalCategory()">
+                <label for="catPW_out">Kas PW</label>
+                <input type="radio" id="catMobil_out" name="kategori_out" value="KAS MOBIL" onchange="updateGlobalCategory()">
+                <label for="catMobil_out">Kas Mobil</label>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-box full">
+                    <p>Total Saldo Akhir</p>
+                    <h3 id="sumSaldo">Rp 0</h3>
+                </div>
+                <div class="summary-box">
+                    <p>Pemasukan</p>
+                    <h3 id="sumMasuk" class="text-masuk">Rp 0</h3>
+                </div>
+                <div class="summary-box">
+                    <p>Pengeluaran</p>
+                    <h3 id="sumKeluar" class="text-keluar">Rp 0</h3>
                 </div>
             </div>
 
-            <button type="submit" id="btnSimpan">Simpan Transaksi</button>
-        </form>
+            <div class="history-filters">
+                <input type="date" id="filterMulai" onchange="renderHistory()">
+                <span style="font-size: 12px; color: var(--text-muted);">s/d</span>
+                <input type="date" id="filterSampai" onchange="renderHistory()">
+            </div>
+            
+            <div class="card" id="historyList">
+                <div style="padding:20px; text-align:center; color:gray; font-size:14px;">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigasi Bawah -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('input')">📝 Input</div>
+        <div class="nav-item" onclick="switchTab('riwayat')">📊 Riwayat</div>
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+        const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
+        let tanggalHijriyahFinal = ""; 
+        let globalCategory = "KAS PW";
+        let rawHistoryData = [];
+
+        // Konversi Format Rupiah
+        const formatRp = (angka) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
+        };
+
+        // Sinkronisasi pilihan Kas antar Tab
+        function updateGlobalCategory() {
+            if(document.getElementById('viewInput').classList.contains('active')) {
+                globalCategory = document.querySelector('input[name="kategori_in"]:checked').value;
+                document.querySelector(`input[name="kategori_out"][value="${globalCategory}"]`).checked = true;
+            } else {
+                globalCategory = document.querySelector('input[name="kategori_out"]:checked').value;
+                document.querySelector(`input[name="kategori_in"][value="${globalCategory}"]`).checked = true;
+                fetchData(); // Reload data jika kas diganti di tab riwayat
+            }
         }
 
-        const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
-
-        let db;
-        let tanggalHijriyahFinal = ""; 
-        const request = indexedDB.open("KasDatabase", 1);
-
-        request.onupgradeneeded = (event) => {
-            db = event.target.result;
-            db.createObjectStore("transaksiPending", { keyPath: "id", autoIncrement: true });
-        };
-
-        request.onsuccess = (event) => {
-            db = event.target.result;
-            updateStatusUI();
-            syncData(); 
-        };
-
-        // Konversi Tanggal Otomatis
-        document.getElementById('tanggal').addEventListener('change', function() {
-            if (!this.value) {
-                document.getElementById('hijriInfo').textContent = "";
-                tanggalHijriyahFinal = "";
-                return;
+        // Tab Switcher
+        function switchTab(tab) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            if(tab === 'input') {
+                document.getElementById('viewInput').classList.add('active');
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+                document.getElementById('pageTitle').textContent = "Input Kas Baru";
+            } else {
+                document.getElementById('viewRiwayat').classList.add('active');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
+                fetchData(); // Ambil data terbaru saat tab riwayat dibuka
             }
+        }
+
+        // Script Konversi Hijriyah (Untuk Input & Filter)
+        function convertToHijri(dateStr) {
             try {
-                const date = new Date(this.value);
-                const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
-                    day: '2-digit', month: '2-digit', year: 'numeric'
-                });
+                const date = new Date(dateStr);
+                const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 const parts = formatter.formatToParts(date);
-                const d = parts.find(p => p.type === 'day').value;
-                const m = parts.find(p => p.type === 'month').value;
-                const y = parts.find(p => p.type === 'year').value.match(/\d+/)[0]; 
+                return `${parts.find(p => p.type === 'day').value}/${parts.find(p => p.type === 'month').value}/${parts.find(p => p.type === 'year').value.match(/\d+/)[0]}`;
+            } catch (err) { return ""; }
+        }
 
-                tanggalHijriyahFinal = `${d}/${m}/${y}`;
-                document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`;
-            } catch (err) {
-                document.getElementById('hijriInfo').textContent = "Konversi gagal";
-            }
+        document.getElementById('tanggal').addEventListener('change', function() {
+            tanggalHijriyahFinal = this.value ? convertToHijri(this.value) : "";
+            document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : "";
         });
 
-        // Submit Form
-        document.getElementById('kasForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!tanggalHijriyahFinal) {
-                alert('Tanggal belum dipilih dengan benar.');
+        // Ambil Data dari Google Sheets
+        function fetchData() {
+            if(!navigator.onLine) {
+                document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px;">Anda sedang offline. Tidak bisa memuat riwayat.</div>';
                 return;
             }
 
-            const btn = document.getElementById('btnSimpan');
+            document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Mengambil data dari server...</div>';
             
+            // Kita gunakan tanggal hari ini sebagai acuan sheet bulan aktif jika tanggal di input form kosong
+            let refDate = tanggalHijriyahFinal || convertToHijri(new Date().toISOString());
+
+            fetch(URL_APPS_SCRIPT, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getData', kategori: globalCategory, tanggal: refDate }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            })
+            .then(res => res.json())
+            .then(result => {
+                if(result.status === 'success') {
+                    document.getElementById('sumSaldo').textContent = formatRp(result.summary.saldo);
+                    document.getElementById('sumMasuk').textContent = formatRp(result.summary.pemasukan);
+                    document.getElementById('sumKeluar').textContent = formatRp(result.summary.pengeluaran);
+                    rawHistoryData = result.history;
+                    renderHistory();
+                }
+            }).catch(e => {
+                document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px;">Gagal mengambil data.</div>';
+            });
+        }
+
+        // Tampilkan List Riwayat dengan Filter
+        function renderHistory() {
+            const listContainer = document.getElementById('historyList');
+            listContainer.innerHTML = '';
+            
+            const startStr = document.getElementById('filterMulai').value;
+            const endStr = document.getElementById('filterSampai').value;
+            
+            // Filter sederhana: Karena format tanggal sheet berbentuk string 'DD/MM/YYYY', 
+            // perbandingan tanggal antar kalender agak kompleks. Untuk mempermudah,
+            // kita ubah format Hijriyah DD/MM/YYYY kembali ke angka utuh YYYYMMDD untuk dibandingkan.
+            
+            let filteredData = rawHistoryData;
+            
+            if(startStr || endStr) {
+                let startVal = startStr ? convertToHijri(startStr).split('/').reverse().join('') : '00000000';
+                let endVal = endStr ? convertToHijri(endStr).split('/').reverse().join('') : '99999999';
+                
+                filteredData = rawHistoryData.filter(item => {
+                    let itemVal = item.tanggal.split('/').reverse().join('');
+                    return itemVal >= startVal && itemVal <= endVal;
+                });
+            }
+
+            if(filteredData.length === 0) {
+                listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Tidak ada transaksi</div>';
+                return;
+            }
+
+            // Tampilkan dari yang terbaru (membalik array)
+            filteredData.slice().reverse().forEach(item => {
+                const isMasuk = item.masuk > 0;
+                const amt = formatRp(isMasuk ? item.masuk : item.keluar);
+                
+                listContainer.innerHTML += `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <p>${item.uraian}</p>
+                            <small>${item.tanggal}</small>
+                        </div>
+                        <div class="history-amount ${isMasuk ? 'text-masuk' : 'text-keluar'}">
+                            ${isMasuk ? '+' : '-'}${amt}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Submit Form Input
+        document.getElementById('kasForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!tanggalHijriyahFinal) return alert('Pilih tanggal terlebih dahulu.');
+
+            const btn = document.getElementById('btnSimpan');
             const data = {
-                kategori: document.querySelector('input[name="kategori"]:checked').value,
+                action: 'insert',
+                kategori: globalCategory,
                 tanggal: tanggalHijriyahFinal, 
                 uraian: document.getElementById('uraian').value,
                 jenis: document.querySelector('input[name="jenis"]:checked').value,
@@ -309,98 +352,34 @@
             if (navigator.onLine) {
                 btn.textContent = "Menyimpan...";
                 btn.disabled = true;
-                kirimKeSheets(data, btn);
-            } else {
-                simpanKeLokal(data);
-            }
-        });
-
-        function kirimKeSheets(data, btnElement = null, idLokal = null) {
-            fetch(URL_APPS_SCRIPT, {
-                method: 'POST',
-                body: JSON.stringify(data),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.status === 'success') {
-                    if (btnElement) {
-                        alert('Tersimpan di ' + data.kategori);
-                        // Reset input form, tapi biarkan kategori yang sedang dipilih
+                
+                fetch(URL_APPS_SCRIPT, {
+                    method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        alert('Berhasil disimpan!');
                         document.getElementById('uraian').value = "";
                         document.getElementById('nominal').value = "";
                         document.querySelector('input[name="jenis"]:checked').checked = false;
-                    }
-                    if (idLokal) hapusDataLokal(idLokal);
-                } else {
-                    alert('Gagal: ' + result.message);
-                }
-            })
-            .catch(error => {
-                if (btnElement) alert('Tersimpan offline. Akan disinkronisasi saat sinyal stabil.');
-                if (!idLokal) simpanKeLokal(data);
-            })
-            .finally(() => {
-                if (btnElement) {
-                    btnElement.textContent = "Simpan Transaksi";
-                    btnElement.disabled = false;
-                }
-            });
-        }
-
-        function simpanKeLokal(data) {
-            const transaction = db.transaction(["transaksiPending"], "readwrite");
-            const store = transaction.objectStore("transaksiPending");
-            store.add(data);
-            alert("Tersimpan offline di " + data.kategori);
-            document.getElementById('uraian').value = "";
-            document.getElementById('nominal').value = "";
-        }
-
-        function hapusDataLokal(id) {
-            const transaction = db.transaction(["transaksiPending"], "readwrite");
-            const store = transaction.objectStore("transaksiPending");
-            store.delete(id);
-        }
-
-        function syncData() {
-            if (!navigator.onLine) return;
-            const transaction = db.transaction(["transaksiPending"], "readonly");
-            const store = transaction.objectStore("transaksiPending");
-            const req = store.getAll();
-
-            req.onsuccess = () => {
-                const antrean = req.result;
-                if (antrean.length > 0) {
-                    const statusEl = document.getElementById('statusJaringan');
-                    statusEl.textContent = `Sinkronisasi ${antrean.length} data...`;
-                    statusEl.className = "status-offline";
-                    statusEl.style.backgroundColor = "#ffeeba";
-                    statusEl.style.color = "#856404";
-                    
-                    antrean.forEach(data => { kirimKeSheets(data, null, data.id); });
-                    setTimeout(updateStatusUI, 3000);
-                }
-            };
-        }
-
-        window.addEventListener('online', () => { updateStatusUI(); syncData(); });
-        window.addEventListener('offline', updateStatusUI);
-
-        function updateStatusUI() {
-            const statusEl = document.getElementById('statusJaringan');
-            if (navigator.onLine) {
-                statusEl.textContent = '● Online';
-                statusEl.className = "status-online";
-                statusEl.style.backgroundColor = '#E5F3EB';
-                statusEl.style.color = '#057234';
+                    } else { alert('Error: ' + res.message); }
+                })
+                .finally(() => { btn.textContent = "Simpan Transaksi"; btn.disabled = false; });
             } else {
-                statusEl.textContent = '● Offline';
-                statusEl.className = "status-offline";
-                statusEl.style.backgroundColor = '#FCECEB';
-                statusEl.style.color = '#D73A49';
+                alert("Anda sedang offline. Fitur simpan offline sedang dinonaktifkan pada versi ini agar sinkronisasi ringkasan akurat.");
             }
-        }
+        });
+
+        // Deteksi Jaringan
+        window.addEventListener('online', () => { 
+            const el = document.getElementById('statusJaringan');
+            el.textContent = '● Online'; el.className = "status-online";
+        });
+        window.addEventListener('offline', () => { 
+            const el = document.getElementById('statusJaringan');
+            el.textContent = '● Offline'; el.className = "status-offline";
+        });
     </script>
 </body>
 </html>
