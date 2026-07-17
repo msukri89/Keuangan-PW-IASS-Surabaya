@@ -2,54 +2,245 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kas PW 1448</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buku Kas IASS</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; background-color: #f8f9fa;}
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, button { width: 100%; padding: 10px; box-sizing: border-box; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; padding: 12px; margin-top: 10px; }
-        button:disabled { background-color: #6c757d; }
-        .radio-group { display: flex; gap: 15px; margin-top: 5px; }
-        .radio-group input { width: auto; transform: scale(1.2); }
-        #statusJaringan { padding: 10px; text-align: center; margin-bottom: 15px; border-radius: 4px; font-weight: bold; }
-        #hijriInfo { display: block; margin-top: 5px; font-size: 14px; color: #28a745; font-weight: bold; }
+        /* Desain Dasar ala iOS */
+        :root {
+            --bg-color: #F2F2F7;
+            --card-bg: #FFFFFF;
+            --iass-green: #057234;
+            --iass-orange: #F78E1E;
+            --text-main: #1C1C1E;
+            --text-muted: #8E8E93;
+            --border-color: #C6C6C8;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0; 
+            padding: 20px 15px; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: auto;
+        }
+
+        /* Header & Status */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h2 {
+            margin: 10px 0 5px 0;
+            font-weight: 600;
+            color: var(--iass-green);
+        }
+
+        #statusJaringan { 
+            font-size: 13px;
+            padding: 8px; 
+            text-align: center; 
+            border-radius: 20px; 
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .status-online { background-color: #E5F3EB; color: var(--iass-green); }
+        .status-offline { background-color: #FCECEB; color: #D73A49; }
+
+        /* Segmented Control (Pilihan Kas) ala iOS */
+        .segmented-control {
+            display: flex;
+            background-color: #E3E3E8;
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 25px;
+        }
+        .segmented-control input[type="radio"] { display: none; }
+        .segmented-control label {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        .segmented-control input[type="radio"]:checked + label {
+            background-color: var(--card-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: var(--iass-orange);
+            font-weight: 600;
+        }
+
+        /* Form Group / Cards */
+        .form-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .form-row:last-child { border-bottom: none; }
+        
+        .form-row label {
+            width: 35%;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .form-input-container {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"] {
+            width: 100%;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            background: transparent;
+            text-align: right;
+            color: var(--text-main);
+        }
+        
+        input::placeholder { color: var(--text-muted); }
+
+        #hijriInfo { 
+            font-size: 12px; 
+            color: var(--iass-green); 
+            text-align: right;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* Radio Buttons (Masuk/Keluar) */
+        .radio-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        .radio-group label {
+            width: auto;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 6px;
+            outline: none;
+            position: relative;
+        }
+        .radio-group input[type="radio"]:checked {
+            border-color: var(--iass-orange);
+        }
+        .radio-group input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--iass-orange);
+            border-radius: 50%;
+        }
+
+        /* Button Simpan */
+        button[type="submit"] {
+            width: 100%;
+            background-color: var(--iass-orange);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 17px;
+            padding: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button[type="submit"]:active { opacity: 0.8; }
+        button:disabled { background-color: #fbd6b1; cursor: not-allowed; }
+
     </style>
 </head>
 <body>
-    <div id="statusJaringan" style="background-color: #d4edda; color: #155724;">Status: Online</div>
-    
-    <h2 style="text-align: center; color: #333;">Input Kas Baru</h2>
-    
-    <form id="kasForm">
-        <div class="form-group">
-            <label>Tanggal:</label>
-            <!-- Input popup kalender masehi bawaan HP -->
-            <input type="date" id="tanggal" required>
-            <!-- Menampilkan hasil konversi otomatis -->
-            <span id="hijriInfo"></span>
+    <div class="container">
+        <div class="header">
+            <div id="statusJaringan" class="status-online">Online</div>
+            <h2>Pencatatan Kas</h2>
         </div>
-        <div class="form-group">
-            <label>Uraian:</label>
-            <input type="text" id="uraian" required placeholder="Contoh: Beli ATK">
-        </div>
-        <div class="form-group">
-            <label>Jenis Transaksi:</label>
-            <div class="radio-group">
-                <input type="radio" id="masuk" name="jenis" value="masuk" required>
-                <label for="masuk">Masuk (+)</label>
-                <input type="radio" id="keluar" name="jenis" value="keluar">
-                <label for="keluar">Keluar (-)</label>
+        
+        <form id="kasForm">
+            <!-- Pemilih Kategori Kas -->
+            <div class="segmented-control">
+                <input type="radio" id="catPW" name="kategori" value="KAS PW" checked>
+                <label for="catPW">Kas PW</label>
+                
+                <input type="radio" id="catMobil" name="kategori" value="KAS MOBIL">
+                <label for="catMobil">Kas Mobil</label>
             </div>
-        </div>
-        <div class="form-group">
-            <label>Nominal (Rp):</label>
-            <input type="number" id="nominal" required placeholder="Contoh: 50000">
-        </div>
-        <button type="submit" id="btnSimpan">Simpan Transaksi</button>
-    </form>
+
+            <!-- Form Input -->
+            <div class="form-card">
+                <div class="form-row">
+                    <label>Tanggal</label>
+                    <div class="form-input-container">
+                        <input type="date" id="tanggal" required>
+                        <span id="hijriInfo"></span>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <label>Uraian</label>
+                    <div class="form-input-container">
+                        <input type="text" id="uraian" required placeholder="Contoh: Beli ATK">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label>Jenis</label>
+                    <div class="form-input-container">
+                        <div class="radio-group">
+                            <label><input type="radio" name="jenis" value="masuk" required> Masuk</label>
+                            <label><input type="radio" name="jenis" value="keluar"> Keluar</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label>Nominal</label>
+                    <div class="form-input-container">
+                        <input type="number" id="nominal" required placeholder="Rp 0">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="btnSimpan">Simpan Transaksi</button>
+        </form>
+    </div>
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -73,44 +264,42 @@
             syncData(); 
         };
 
-        // Skrip Konversi Otomatis ke Hijriyah
+        // Konversi Tanggal Otomatis
         document.getElementById('tanggal').addEventListener('change', function() {
             if (!this.value) {
                 document.getElementById('hijriInfo').textContent = "";
                 tanggalHijriyahFinal = "";
                 return;
             }
-            
             try {
                 const date = new Date(this.value);
                 const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
                     day: '2-digit', month: '2-digit', year: 'numeric'
                 });
-                
                 const parts = formatter.formatToParts(date);
                 const d = parts.find(p => p.type === 'day').value;
                 const m = parts.find(p => p.type === 'month').value;
                 const y = parts.find(p => p.type === 'year').value.match(/\d+/)[0]; 
 
                 tanggalHijriyahFinal = `${d}/${m}/${y}`;
-                document.getElementById('hijriInfo').textContent = `Terkonversi ke Hijriyah: ${tanggalHijriyahFinal}`;
+                document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`;
             } catch (err) {
-                document.getElementById('hijriInfo').textContent = "Browser tidak mendukung konversi otomatis.";
-                document.getElementById('hijriInfo').style.color = "red";
+                document.getElementById('hijriInfo').textContent = "Konversi gagal";
             }
         });
 
-        // Proses Submit Form
+        // Submit Form
         document.getElementById('kasForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!tanggalHijriyahFinal) {
-                alert('Tanggal belum dipilih atau gagal dikonversi.');
+                alert('Tanggal belum dipilih dengan benar.');
                 return;
             }
 
             const btn = document.getElementById('btnSimpan');
             
             const data = {
+                kategori: document.querySelector('input[name="kategori"]:checked').value,
                 tanggal: tanggalHijriyahFinal, 
                 uraian: document.getElementById('uraian').value,
                 jenis: document.querySelector('input[name="jenis"]:checked').value,
@@ -118,7 +307,7 @@
             };
 
             if (navigator.onLine) {
-                btn.textContent = "Menyimpan ke Sheets...";
+                btn.textContent = "Menyimpan...";
                 btn.disabled = true;
                 kirimKeSheets(data, btn);
             } else {
@@ -136,9 +325,11 @@
             .then(result => {
                 if (result.status === 'success') {
                     if (btnElement) {
-                        alert('Berhasil disimpan ke Excel!');
-                        document.getElementById('kasForm').reset();
-                        document.getElementById('hijriInfo').textContent = "";
+                        alert('Tersimpan di ' + data.kategori);
+                        // Reset input form, tapi biarkan kategori yang sedang dipilih
+                        document.getElementById('uraian').value = "";
+                        document.getElementById('nominal').value = "";
+                        document.querySelector('input[name="jenis"]:checked').checked = false;
                     }
                     if (idLokal) hapusDataLokal(idLokal);
                 } else {
@@ -146,7 +337,7 @@
                 }
             })
             .catch(error => {
-                if (btnElement) alert('Gagal terkirim. Data diamankan ke memori HP.');
+                if (btnElement) alert('Tersimpan offline. Akan disinkronisasi saat sinyal stabil.');
                 if (!idLokal) simpanKeLokal(data);
             })
             .finally(() => {
@@ -161,9 +352,9 @@
             const transaction = db.transaction(["transaksiPending"], "readwrite");
             const store = transaction.objectStore("transaksiPending");
             store.add(data);
-            alert("Internet terputus! Data disimpan di HP dan akan otomatis dikirim saat sinyal kembali.");
-            document.getElementById('kasForm').reset();
-            document.getElementById('hijriInfo').textContent = "";
+            alert("Tersimpan offline di " + data.kategori);
+            document.getElementById('uraian').value = "";
+            document.getElementById('nominal').value = "";
         }
 
         function hapusDataLokal(id) {
@@ -174,7 +365,6 @@
 
         function syncData() {
             if (!navigator.onLine) return;
-
             const transaction = db.transaction(["transaksiPending"], "readonly");
             const store = transaction.objectStore("transaksiPending");
             const req = store.getAll();
@@ -183,14 +373,12 @@
                 const antrean = req.result;
                 if (antrean.length > 0) {
                     const statusEl = document.getElementById('statusJaringan');
-                    statusEl.textContent = `Mengirim ${antrean.length} data antrean...`;
+                    statusEl.textContent = `Sinkronisasi ${antrean.length} data...`;
+                    statusEl.className = "status-offline";
                     statusEl.style.backgroundColor = "#ffeeba";
                     statusEl.style.color = "#856404";
                     
-                    antrean.forEach(data => {
-                        kirimKeSheets(data, null, data.id);
-                    });
-
+                    antrean.forEach(data => { kirimKeSheets(data, null, data.id); });
                     setTimeout(updateStatusUI, 3000);
                 }
             };
@@ -202,13 +390,15 @@
         function updateStatusUI() {
             const statusEl = document.getElementById('statusJaringan');
             if (navigator.onLine) {
-                statusEl.textContent = 'Status: Online';
-                statusEl.style.backgroundColor = '#d4edda';
-                statusEl.style.color = '#155724';
+                statusEl.textContent = '● Online';
+                statusEl.className = "status-online";
+                statusEl.style.backgroundColor = '#E5F3EB';
+                statusEl.style.color = '#057234';
             } else {
-                statusEl.textContent = 'Status: Offline - Mode Simpan Lokal';
-                statusEl.style.backgroundColor = '#f8d7da';
-                statusEl.style.color = '#721c24';
+                statusEl.textContent = '● Offline';
+                statusEl.className = "status-offline";
+                statusEl.style.backgroundColor = '#FCECEB';
+                statusEl.style.color = '#D73A49';
             }
         }
     </script>
