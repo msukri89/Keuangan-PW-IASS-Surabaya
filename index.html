@@ -46,6 +46,55 @@
         .header-logo { width: 75%; max-width: 250px; height: auto; margin: 0 auto; display: block; }
         .header h2 { margin: 10px 0 0 0; font-weight: 600; color: var(--iass-green); font-size: 20px; }
 
+        /* --- DESAIN LOGIN BARU --- */
+        .login-wrapper {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--iass-green);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; box-sizing: border-box;
+        }
+        .login-wrapper.active { display: flex; }
+        
+        .login-card {
+            background: #FFFFFF; border-radius: 24px; padding: 35px 25px;
+            width: 100%; max-width: 360px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: slideUpFade 0.5s ease-out;
+        }
+        
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-logo { width: 85%; max-width: 220px; height: auto; margin-bottom: 20px; }
+        .login-title { font-size: 22px; font-weight: 700; color: var(--text-main); margin: 0 0 5px 0; }
+        .login-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 30px; }
+        
+        .input-with-icon {
+            display: flex; align-items: center; background: #F2F2F7;
+            border-radius: 12px; margin-bottom: 15px; padding: 0 15px;
+            border: 1px solid transparent; transition: 0.3s;
+        }
+        .input-with-icon:focus-within { border-color: var(--iass-green); background: #fff; box-shadow: 0 0 0 3px rgba(5, 114, 52, 0.1); }
+        .input-with-icon svg { width: 20px; height: 20px; stroke: #8E8E93; fill: none; stroke-width: 2; margin-right: 12px; stroke-linecap: round; stroke-linejoin: round;}
+        
+        .login-input {
+            flex: 1; border: none; background: transparent; padding: 15px 0;
+            font-size: 15px; text-align: left; color: var(--text-main); outline: none; width: 100%;
+        }
+        .login-input::placeholder { color: #AEAEB2; }
+
+        .btn-login {
+            width: 100%; background: var(--iass-orange); color: white; border: none;
+            border-radius: 12px; font-weight: 700; font-size: 15px; padding: 15px;
+            cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(247, 142, 30, 0.3); transition: 0.2s;
+        }
+        .btn-login:active { transform: scale(0.97); }
+        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
+        /* ------------------------- */
+
         .custom-select-trigger {
             width: 100%; padding: 14px 15px; font-size: 15px; border: 1px solid var(--border-color);
             border-radius: 10px; background-color: var(--card-bg); color: var(--text-main);
@@ -63,8 +112,6 @@
         input[type="text"], input[type="password"] {
             width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent; color: var(--text-main);
         }
-        
-        .login-input { text-align: left !important; padding: 15px !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important;}
         
         .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
         .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 14px; }
@@ -120,20 +167,33 @@
     <div id="statusJaringan" class="status-online">Online</div>
     <button id="btnLogout" onclick="logout()">Keluar</button>
 
+    <!-- VIEW: LOGIN (Tampilan overlay hijau penuh) -->
+    <div id="viewLogin" class="login-wrapper active">
+        <div class="login-card">
+            <img src="logo.png" alt="Logo IASS" class="login-logo">
+            <h2 class="login-title">Selamat Datang</h2>
+            <p class="login-subtitle">Silakan masuk menggunakan identitas Anda</p>
+            
+            <div class="input-with-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <input type="text" id="loginUser" class="login-input" placeholder="ID Pengurus atau Username" autocomplete="off">
+            </div>
+            
+            <div class="input-with-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <input type="password" id="loginPass" class="login-input" placeholder="PIN Rahasia">
+            </div>
+            
+            <button onclick="doLogin()" class="btn-login" id="btnProsesLogin">Masuk Aplikasi</button>
+        </div>
+    </div>
+
+    <!-- AREA APLIKASI UTAMA -->
     <div class="container">
         <div class="header">
             <img src="logo.png" alt="Logo IASS" class="header-logo">
             <h2 id="pageTitle">Sistem Kas IASS</h2>
             <p id="welcomeMsg" style="font-size:12px; color:var(--text-muted); margin-top:5px; display:none;"></p>
-        </div>
-
-        <!-- VIEW: LOGIN -->
-        <div id="viewLogin" class="view-section active">
-            <div class="card" style="padding: 10px 0;">
-                <input type="text" id="loginUser" class="login-input" placeholder="Username" autocomplete="off">
-                <input type="password" id="loginPass" class="login-input" placeholder="Password" style="border-bottom:none !important;">
-            </div>
-            <button onclick="doLogin()" class="btn-primary" id="btnProsesLogin">Masuk Aplikasi</button>
         </div>
 
         <!-- VIEW: INPUT TRANSAKSI -->
@@ -244,6 +304,9 @@
         function checkSession() {
             const role = localStorage.getItem('iassRole'); const nama = localStorage.getItem('iassNama');
             if (role) {
+                // Tembunyikan area login
+                document.getElementById('viewLogin').classList.remove('active');
+                
                 document.getElementById('btnLogout').style.display = 'block';
                 document.getElementById('bottomNav').style.display = 'flex';
                 document.getElementById('welcomeMsg').style.display = 'block';
@@ -252,10 +315,12 @@
                 if (role.toLowerCase() === 'bendahara') { document.getElementById('navInputBtn').style.display = 'flex'; switchTab('input'); } 
                 else { document.getElementById('navInputBtn').style.display = 'none'; switchTab('riwayat'); }
             } else {
+                // Tampilkan area login overlay
+                document.getElementById('viewLogin').classList.add('active');
+                
                 document.getElementById('btnLogout').style.display = 'none'; document.getElementById('bottomNav').style.display = 'none';
                 document.getElementById('welcomeMsg').style.display = 'none';
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                document.getElementById('viewLogin').classList.add('active'); document.getElementById('pageTitle').textContent = "Masuk Sistem";
             }
         }
 
@@ -275,6 +340,7 @@
             .catch(() => alert('Gagal terhubung. Pastikan ada sinyal internet.'))
             .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
         }
+        
         function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); checkSession(); } }
 
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
@@ -307,7 +373,6 @@
             { val: '10/48', label: 'Bulan 10 (Syawal 1448)' }, { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' }, { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
         ];
 
-        // Format value Masehi diubah menjadi Bulan/Tahun agar mudah dihitung oleh sistem
         const bulanMasehi = [
             { val: 'ALL', label: 'Tampilkan Semua' },
             { val: '5/2026', label: 'Mei 2026' }, { val: '6/2026', label: 'Juni 2026' }, { val: '7/2026', label: 'Juli 2026' },
@@ -332,7 +397,6 @@
             if (catOut === 'KAS MOBIL') {
                 wrapperBulan.style.display = 'block';
                 optionsData['bulanSheet'] = bulanMasehi;
-                // Default ke 'Tampilkan Semua' jika sebelumnya di format Hijriyah
                 if(!document.getElementById('bulanSheet').value.includes('/20') && document.getElementById('bulanSheet').value !== 'ALL') {
                     document.getElementById('bulanSheet').value = 'ALL';
                     triggerBulan.textContent = 'Tampilkan Semua';
@@ -407,26 +471,23 @@
             const catOut = document.getElementById('cat_out').value;
             let filteredData = rawHistoryData;
             
-            // Logika Ekstraksi Tanggal untuk Kas Mobil (Masehi)
             if (catOut === 'KAS MOBIL') {
-                const filterMasehi = document.getElementById('bulanSheet').value; // 'ALL' atau '5/2026'
+                const filterMasehi = document.getElementById('bulanSheet').value; 
                 
                 if (filterMasehi !== 'ALL') {
                     let [fMonth, fYear] = filterMasehi.split('/');
                     filteredData = rawHistoryData.filter(item => {
                         let d = new Date(item.tanggal);
-                        if(isNaN(d)) return false; // Menyaring baris kosong atau header
+                        if(isNaN(d)) return false; 
                         return (d.getMonth() + 1) == parseInt(fMonth) && d.getFullYear() == parseInt(fYear);
                     });
                 } else {
-                    // Jika ALL, tetap singkirkan teks header yang ikut terbaca dari baris 7
                     filteredData = rawHistoryData.filter(item => !isNaN(new Date(item.tanggal)));
                 }
                 
                 let mIn = 0; let mOut = 0; let mSaldo = 0;
                 filteredData.forEach(item => { mIn += (Number(item.masuk) || 0); mOut += (Number(item.keluar) || 0); });
                 
-                // Menentukan nilai Saldo Akhir yang ditampilkan di kartu atas
                 if (filterMasehi === 'ALL') {
                     mSaldo = backendSummary.saldo;
                     if(!mSaldo && filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo;
@@ -443,14 +504,13 @@
                 document.getElementById('sumSaldo').textContent = formatRp(backendSummary.saldo);
             }
 
-            // Memperbaiki Pengurutan Tanggal Masehi dan Hijriyah (Terbaru di atas)
             if (catOut !== 'KAS PW & MOBIL') {
                 filteredData.sort((a, b) => {
                     if (catOut === 'KAS MOBIL') {
-                        return new Date(b.tanggal) - new Date(a.tanggal); // Urutan kalender Masehi aktual
+                        return new Date(b.tanggal) - new Date(a.tanggal); 
                     } else {
                         let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
-                        return dA.localeCompare(dB); // Urutan string Hijriyah
+                        return dA.localeCompare(dB); 
                     }
                 });
             }
