@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Buku Kas IASS</title>
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Flatpickr untuk Custom Datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
     <style>
         :root {
             --bg-color: #F2F2F7; --card-bg: #FFFFFF; --iass-green: #057234;
@@ -20,47 +24,36 @@
 
         .container { max-width: 450px; margin: auto; padding: 0 15px; }
         
-        /* Pengaturan Header Sticky & Transparan Gradasi */
-        .header { 
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            text-align: center; 
-            padding: 15px 0 20px 0;
-            margin-bottom: 10px;
-            /* Latar belakang transparan gradasi membaur dengan warna body */
-            background: linear-gradient(to bottom, rgba(242, 242, 247, 0.95) 75%, rgba(242, 242, 247, 0) 100%);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
-        
-        .header-logo {
-            width: 85%;
-            max-width: 280px;
-            height: auto;
-            margin: 10px auto;
-            display: block;
-        }
-
-        .header h2 { margin: 5px 0 0 0; font-weight: 600; color: var(--iass-green); font-size: 22px; }
-
+        /* Indikator Online di Kanan Atas */
         #statusJaringan { 
+            position: fixed; top: 15px; right: 15px; z-index: 1000;
             font-size: 11px; padding: 5px 10px; border-radius: 20px; font-weight: 600;
-            display: inline-block; margin-bottom: 0px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .status-online { background-color: #E5F3EB; color: var(--iass-green); }
         .status-offline { background-color: #FCECEB; color: #D73A49; }
 
-        /* Style Dropdown Baru */
-        .dropdown-select {
-            width: 100%; padding: 14px 15px; font-size: 16px; border: 1px solid var(--border-color);
-            border-radius: 10px; background-color: var(--card-bg); color: var(--text-main);
-            margin-bottom: 15px; font-weight: 600; outline: none; appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat; background-position: right 15px center; background-size: 16px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        /* Header */
+        .header { 
+            position: sticky; top: 0; z-index: 100; text-align: center; 
+            padding: 25px 0 15px 0; margin-bottom: 10px;
+            background: linear-gradient(to bottom, rgba(242, 242, 247, 0.95) 75%, rgba(242, 242, 247, 0) 100%);
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
         }
-        .dropdown-select:focus { border-color: var(--iass-green); }
+        .header-logo { width: 75%; max-width: 250px; height: auto; margin: 0 auto; display: block; }
+        .header h2 { margin: 10px 0 0 0; font-weight: 600; color: var(--iass-green); font-size: 20px; }
+
+        /* Custom Dropdown (Trigger) */
+        .custom-select-trigger {
+            width: 100%; padding: 14px 15px; font-size: 15px; border: 1px solid var(--border-color);
+            border-radius: 10px; background-color: var(--card-bg); color: var(--text-main);
+            margin-bottom: 15px; font-weight: 600; cursor: pointer; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box;
+        }
+        .custom-select-trigger::after {
+            content: "▼"; font-size: 12px; color: var(--text-muted);
+        }
 
         /* Cards & Forms */
         .card {
@@ -69,14 +62,14 @@
         }
         .form-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); }
         .form-row:last-child { border-bottom: none; }
-        .form-row label { width: 35%; font-size: 15px; font-weight: 500; }
+        .form-row label { width: 35%; font-size: 14px; font-weight: 500; }
         .form-input-container { width: 65%; display: flex; flex-direction: column; }
         
-        input[type="text"], input[type="number"], input[type="date"] {
-            width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent;
+        input[type="text"], input[type="date"] {
+            width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent; color: var(--text-main);
         }
         .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
-        .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+        .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 14px; }
         .radio-group input[type="radio"] { margin-right: 5px; accent-color: var(--iass-orange); transform: scale(1.2); }
 
         button.btn-primary {
@@ -91,16 +84,16 @@
         .summary-box.full { grid-column: span 2; background-color: var(--iass-green); color: white; }
         .summary-box p { margin: 0; font-size: 12px; color: var(--text-muted); }
         .summary-box.full p { color: #E5F3EB; }
-        .summary-box h3 { margin: 5px 0 0 0; font-size: 18px; }
+        .summary-box h3 { margin: 5px 0 0 0; font-size: 17px; }
         .text-masuk { color: var(--iass-green); }
         .text-keluar { color: #D73A49; }
 
         /* History List */
         .history-filters { display: flex; gap: 10px; padding: 15px; background: var(--card-bg); border-radius: 12px; margin-bottom: 10px; align-items: center; justify-content: space-between;}
-        .history-filters input { text-align: left; font-size: 13px; padding: 5px; width: 40%;}
+        .history-filters input { text-align: left; font-size: 13px; padding: 5px; width: 40%; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box;}
         .history-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .history-item:last-child { border-bottom: none; }
-        .history-info p { margin: 0; font-size: 14px; font-weight: 500;}
+        .history-info p { margin: 0; font-size: 14px; font-weight: 500; text-transform: capitalize;}
         .history-info small { color: var(--text-muted); font-size: 12px;}
         .history-amount { font-weight: 600; font-size: 15px;}
 
@@ -118,15 +111,40 @@
 
         .view-section { display: none; }
         .view-section.active { display: block; }
+
+        /* Modal Bottom Sheet (Custom Select) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 999; display: none;
+            align-items: flex-end; justify-content: center;
+        }
+        .modal-sheet {
+            background: var(--card-bg); width: 100%; max-width: 450px;
+            border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box;
+            animation: slideUp 0.3s ease-out; max-height: 80vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-title { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 15px; color: var(--text-main); }
+        .modal-option {
+            padding: 15px; border-bottom: 1px solid var(--border-color);
+            font-size: 15px; text-align: center; cursor: pointer;
+        }
+        .modal-option:last-child { border-bottom: none; }
+        .modal-option:active { background-color: var(--bg-color); }
+        
+        /* Tema Kalender Flatpickr */
+        .flatpickr-calendar { font-family: inherit !important; border-radius: 12px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; border: none !important; }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
+            background: var(--iass-orange) !important; border-color: var(--iass-orange) !important;
+        }
     </style>
 </head>
 <body>
+    <div id="statusJaringan" class="status-online">Online</div>
+
     <div class="container">
-        
         <!-- HEADER STICKY -->
         <div class="header">
-            <div id="statusJaringan" class="status-online">Online</div>
-            <!-- Pemanggilan file logo.png -->
             <img src="logo.png" alt="Logo IASS" class="header-logo">
             <h2 id="pageTitle">Input Kas</h2>
         </div>
@@ -134,17 +152,17 @@
         <!-- VIEW: INPUT TRANSAKSI -->
         <div id="viewInput" class="view-section active">
             
-            <select id="cat_in" class="dropdown-select">
-                <option value="KAS PW">Buku Kas PW</option>
-                <option value="KAS MOBIL">Buku Kas Mobil</option>
-            </select>
+            <!-- Custom Select Kategori Input -->
+            <div id="trigger_cat_in" class="custom-select-trigger" onclick="openModal('cat_in', 'Pilih Kategori Kas')">Buku Kas PW</div>
+            <input type="hidden" id="cat_in" value="KAS PW">
 
             <form id="kasForm">
                 <div class="card">
                     <div class="form-row">
                         <label>Tanggal</label>
                         <div class="form-input-container">
-                            <input type="date" id="tanggal" required>
+                            <!-- Input ini akan diubah Flatpickr -->
+                            <input type="text" id="tanggal" required placeholder="Pilih Tanggal">
                             <span id="hijriInfo" style="font-size:12px; color:var(--iass-green); text-align:right; margin-top:4px;"></span>
                         </div>
                     </div>
@@ -166,7 +184,8 @@
                     <div class="form-row">
                         <label>Nominal</label>
                         <div class="form-input-container">
-                            <input type="number" id="nominal" required placeholder="Rp 0">
+                            <!-- Diubah ke type text agar koma ribuan berfungsi -->
+                            <input type="text" id="nominal" required placeholder="0" inputmode="numeric">
                         </div>
                     </div>
                 </div>
@@ -177,26 +196,13 @@
         <!-- VIEW: RIWAYAT & RINGKASAN -->
         <div id="viewRiwayat" class="view-section">
             
-            <select id="cat_out" class="dropdown-select" onchange="fetchData()">
-                <option value="KAS PW">Lihat: Kas PW</option>
-                <option value="KAS MOBIL">Lihat: Kas Mobil</option>
-                <option value="KAS PW & MOBIL">Lihat: Kas PW & Mobil (Gabungan)</option>
-            </select>
+            <!-- Custom Select Kategori Output -->
+            <div id="trigger_cat_out" class="custom-select-trigger" onclick="openModal('cat_out', 'Lihat Laporan Kas')">Lihat: Kas PW</div>
+            <input type="hidden" id="cat_out" value="KAS PW">
 
-            <select id="bulanSheet" class="dropdown-select" onchange="fetchData()">
-                <option value="1/48">Bulan 1 (Muharram 1448)</option>
-                <option value="2/48" selected>Bulan 2 (Shafar 1448)</option>
-                <option value="3/48">Bulan 3 (R. Awal 1448)</option>
-                <option value="4/48">Bulan 4 (R. Tsani 1448)</option>
-                <option value="5/48">Bulan 5 (J. Ula 1448)</option>
-                <option value="6/48">Bulan 6 (J. Tsani 1448)</option>
-                <option value="7/48">Bulan 7 (Rajab 1448)</option>
-                <option value="8/48">Bulan 8 (Sya'ban 1448)</option>
-                <option value="9/48">Bulan 9 (Ramadhan 1448)</option>
-                <option value="10/48">Bulan 10 (Syawal 1448)</option>
-                <option value="11/48">Bulan 11 (Dzul Qo'dah 1448)</option>
-                <option value="12/48">Bulan 12 (Dzul Hijjah 1448)</option>
-            </select>
+            <!-- Custom Select Bulan -->
+            <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan Hijriyah')">Bulan 2 (Shafar 1448)</div>
+            <input type="hidden" id="bulanSheet" value="2/48">
 
             <div class="summary-grid">
                 <div class="summary-box full">
@@ -214,9 +220,10 @@
             </div>
 
             <div class="history-filters">
-                <input type="date" id="filterMulai" onchange="renderHistory()">
+                <!-- Kalender filter menggunakan Flatpickr juga -->
+                <input type="text" id="filterMulai" placeholder="Pilih Mulai">
                 <span style="font-size: 12px; color: var(--text-muted);">s/d</span>
-                <input type="date" id="filterSampai" onchange="renderHistory()">
+                <input type="text" id="filterSampai" placeholder="Pilih Sampai">
             </div>
             
             <div class="card" id="historyList">
@@ -231,12 +238,103 @@
         <div class="nav-item" onclick="switchTab('riwayat')">📊 Riwayat</div>
     </div>
 
+    <!-- Struktur Modal Bottom Sheet -->
+    <div class="modal-overlay" id="customModal" onclick="closeModal(event)">
+        <div class="modal-sheet">
+            <div class="modal-title" id="modalTitle">Pilih</div>
+            <div id="modalOptions"></div>
+        </div>
+    </div>
+
+    <!-- Flatpickr JS & Locale Indonesia -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
     <script>
         const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
         let tanggalHijriyahFinal = ""; 
         let rawHistoryData = [];
 
+        // Inisialisasi Kalender Flatpickr
+        const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
+        flatpickr("#tanggal", {
+            ...flatpickrConfig,
+            onChange: function(selectedDates, dateStr, instance) {
+                tanggalHijriyahFinal = dateStr ? convertToHijri(dateStr) : "";
+                document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : "";
+            }
+        });
+        const filterStart = flatpickr("#filterMulai", { ...flatpickrConfig, onChange: () => renderHistory() });
+        const filterEnd = flatpickr("#filterSampai", { ...flatpickrConfig, onChange: () => renderHistory() });
+
+        // Fungsi Format Ribuan Otomatis
         const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
+        
+        const nominalInput = document.getElementById('nominal');
+        nominalInput.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, ''); // Hapus semua karakter selain angka
+            this.value = val ? new Intl.NumberFormat('id-ID').format(val) : '';
+        });
+
+        // Fungsi Proper Case (Huruf Awal Kapital)
+        function toProperCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        // --- SISTEM CUSTOM DROPDOWN (MODAL BOTTOM SHEET) ---
+        const optionsData = {
+            'cat_in': [
+                { val: 'KAS PW', label: 'Buku Kas PW' },
+                { val: 'KAS MOBIL', label: 'Buku Kas Mobil' }
+            ],
+            'cat_out': [
+                { val: 'KAS PW', label: 'Lihat: Kas PW' },
+                { val: 'KAS MOBIL', label: 'Lihat: Kas Mobil' },
+                { val: 'KAS PW & MOBIL', label: 'Lihat: Kas PW & Mobil (Gabungan)' }
+            ],
+            'bulanSheet': [
+                { val: '1/48', label: 'Bulan 1 (Muharram 1448)' },
+                { val: '2/48', label: 'Bulan 2 (Shafar 1448)' },
+                { val: '3/48', label: 'Bulan 3 (R. Awal 1448)' },
+                { val: '4/48', label: 'Bulan 4 (R. Tsani 1448)' },
+                { val: '5/48', label: 'Bulan 5 (J. Ula 1448)' },
+                { val: '6/48', label: 'Bulan 6 (J. Tsani 1448)' },
+                { val: '7/48', label: 'Bulan 7 (Rajab 1448)' },
+                { val: '8/48', label: 'Bulan 8 (Sya\'ban 1448)' },
+                { val: '9/48', label: 'Bulan 9 (Ramadhan 1448)' },
+                { val: '10/48', label: 'Bulan 10 (Syawal 1448)' },
+                { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' },
+                { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
+            ]
+        };
+
+        function openModal(targetId, title) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = title;
+            const optionsContainer = document.getElementById('modalOptions');
+            optionsContainer.innerHTML = '';
+
+            optionsData[targetId].forEach(opt => {
+                let div = document.createElement('div');
+                div.className = 'modal-option';
+                div.textContent = opt.label;
+                div.onclick = function() {
+                    document.getElementById(targetId).value = opt.val;
+                    document.getElementById('trigger_' + targetId).textContent = opt.label;
+                    modal.style.display = 'none';
+                    if(targetId === 'cat_out' || targetId === 'bulanSheet') fetchData();
+                };
+                optionsContainer.appendChild(div);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(e) {
+            if(e.target === document.getElementById('customModal')) {
+                document.getElementById('customModal').style.display = 'none';
+            }
+        }
+        // ---------------------------------------------------
 
         function switchTab(tab) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -245,23 +343,28 @@
             if(tab === 'input') {
                 document.getElementById('viewInput').classList.add('active');
                 document.querySelectorAll('.nav-item')[0].classList.add('active');
-                document.getElementById('pageTitle').textContent = "Input Kas"; // Berubah sesuai tab
+                document.getElementById('pageTitle').textContent = "Input Kas";
                 
                 let currentOut = document.getElementById('cat_out').value;
                 if(currentOut === 'KAS PW & MOBIL') {
                     document.getElementById('cat_in').value = 'KAS PW';
+                    document.getElementById('trigger_cat_in').textContent = 'Buku Kas PW';
                 } else {
                     document.getElementById('cat_in').value = currentOut;
+                    const label = optionsData.cat_in.find(o => o.val === currentOut).label;
+                    document.getElementById('trigger_cat_in').textContent = label;
                 }
             } else {
                 document.getElementById('viewRiwayat').classList.add('active');
                 document.querySelectorAll('.nav-item')[1].classList.add('active');
-                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan"; // Berubah sesuai tab
-                document.getElementById('cat_out').value = document.getElementById('cat_in').value;
+                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
+                
+                let inVal = document.getElementById('cat_in').value;
+                document.getElementById('cat_out').value = inVal;
+                const label = optionsData.cat_out.find(o => o.val === inVal).label;
+                document.getElementById('trigger_cat_out').textContent = label;
                 fetchData(); 
             }
-            
-            // Gulir otomatis ke paling atas saat pindah tab agar transisi terlihat mulus
             window.scrollTo(0, 0); 
         }
 
@@ -273,11 +376,6 @@
                 return `${parts.find(p => p.type === 'day').value}/${parts.find(p => p.type === 'month').value}/${parts.find(p => p.type === 'year').value.match(/\d+/)[0]}`;
             } catch (err) { return ""; }
         }
-
-        document.getElementById('tanggal').addEventListener('change', function() {
-            tanggalHijriyahFinal = this.value ? convertToHijri(this.value) : "";
-            document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : "";
-        });
 
         function fetchData() {
             if(!navigator.onLine) {
@@ -316,13 +414,15 @@
             const listContainer = document.getElementById('historyList');
             listContainer.innerHTML = '';
             
-            const startStr = document.getElementById('filterMulai').value;
-            const endStr = document.getElementById('filterSampai').value;
+            // Konversi dari kalender Flatpickr ke sistem banding numerik (YYYYMMDD)
+            const startInput = document.getElementById('filterMulai').value;
+            const endInput = document.getElementById('filterSampai').value;
+            
             let filteredData = rawHistoryData;
             
-            if(startStr || endStr) {
-                let startVal = startStr ? convertToHijri(startStr).split('/').reverse().join('') : '00000000';
-                let endVal = endStr ? convertToHijri(endStr).split('/').reverse().join('') : '99999999';
+            if(startInput || endInput) {
+                let startVal = startInput ? convertToHijri(startInput).split('/').reverse().join('') : '00000000';
+                let endVal = endInput ? convertToHijri(endInput).split('/').reverse().join('') : '99999999';
                 filteredData = rawHistoryData.filter(item => {
                     let itemVal = item.tanggal.split('/').reverse().join('');
                     return itemVal >= startVal && itemVal <= endVal;
@@ -347,7 +447,8 @@
                 listContainer.innerHTML += `
                     <div class="history-item">
                         <div class="history-info">
-                            <p>${item.uraian}</p>
+                            <!-- Dibuat otomatis Proper Case saat history dimuat -->
+                            <p>${toProperCase(item.uraian)}</p>
                             <small>${item.tanggal}</small>
                         </div>
                         <div class="history-amount ${isMasuk ? 'text-masuk' : 'text-keluar'}">
@@ -362,14 +463,17 @@
             e.preventDefault();
             if (!tanggalHijriyahFinal) return alert('Pilih tanggal terlebih dahulu.');
 
+            const rawNominal = document.getElementById('nominal').value.replace(/\./g, '');
+
             const btn = document.getElementById('btnSimpan');
             const data = {
                 action: 'insert',
                 kategori: document.getElementById('cat_in').value,
                 tanggal: tanggalHijriyahFinal, 
-                uraian: document.getElementById('uraian').value,
+                // Mengubah inputan uraian menjadi Proper Case sebelum dikirim
+                uraian: toProperCase(document.getElementById('uraian').value),
                 jenis: document.querySelector('input[name="jenis"]:checked').value,
-                nominal: document.getElementById('nominal').value
+                nominal: Number(rawNominal)
             };
 
             if (navigator.onLine) {
@@ -390,11 +494,11 @@
 
         window.addEventListener('online', () => { 
             const el = document.getElementById('statusJaringan');
-            el.textContent = '● Online'; el.className = "status-online";
+            el.textContent = 'Online'; el.className = "status-online";
         });
         window.addEventListener('offline', () => { 
             const el = document.getElementById('statusJaringan');
-            el.textContent = '● Offline'; el.className = "status-offline";
+            el.textContent = 'Offline'; el.className = "status-offline";
         });
     </script>
 </body>
