@@ -241,7 +241,6 @@
         const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
         let tanggalHijriyahFinal = ""; let rawHistoryData = []; let backendSummary = {};
 
-        // --- SISTEM LOGIN ---
         function checkSession() {
             const role = localStorage.getItem('iassRole'); const nama = localStorage.getItem('iassNama');
             if (role) {
@@ -278,7 +277,6 @@
         }
         function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); checkSession(); } }
 
-        // --- KONFIGURASI KALENDER & FORMATTER ---
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
         const dateInput = flatpickr("#tanggal", {
             ...flatpickrConfig,
@@ -302,7 +300,6 @@
             } catch (err) { return ""; }
         }
 
-        // --- SISTEM DROPDOWN DINAMIS (PARADOKS SOLVER) ---
         const bulanHijriyah = [
             { val: '1/48', label: 'Bulan 1 (Muharram 1448)' }, { val: '2/48', label: 'Bulan 2 (Shafar 1448)' }, { val: '3/48', label: 'Bulan 3 (R. Awal 1448)' },
             { val: '4/48', label: 'Bulan 4 (R. Tsani 1448)' }, { val: '5/48', label: 'Bulan 5 (J. Ula 1448)' }, { val: '6/48', label: 'Bulan 6 (J. Tsani 1448)' },
@@ -310,10 +307,12 @@
             { val: '10/48', label: 'Bulan 10 (Syawal 1448)' }, { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' }, { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
         ];
 
+        // Format value Masehi diubah menjadi Bulan/Tahun agar mudah dihitung oleh sistem
         const bulanMasehi = [
-            { val: '/05/2026', label: 'Mei 2026' }, { val: '/06/2026', label: 'Juni 2026' }, { val: '/07/2026', label: 'Juli 2026' },
-            { val: '/08/2026', label: 'Agustus 2026' }, { val: '/09/2026', label: 'September 2026' }, { val: '/10/2026', label: 'Oktober 2026' },
-            { val: '/11/2026', label: 'November 2026' }, { val: '/12/2026', label: 'Desember 2026' }, { val: '/01/2027', label: 'Januari 2027' }
+            { val: 'ALL', label: 'Tampilkan Semua' },
+            { val: '5/2026', label: 'Mei 2026' }, { val: '6/2026', label: 'Juni 2026' }, { val: '7/2026', label: 'Juli 2026' },
+            { val: '8/2026', label: 'Agustus 2026' }, { val: '9/2026', label: 'September 2026' }, { val: '10/2026', label: 'Oktober 2026' },
+            { val: '11/2026', label: 'November 2026' }, { val: '12/2026', label: 'Desember 2026' }, { val: '1/2027', label: 'Januari 2027' }
         ];
 
         let optionsData = {
@@ -333,16 +332,17 @@
             if (catOut === 'KAS MOBIL') {
                 wrapperBulan.style.display = 'block';
                 optionsData['bulanSheet'] = bulanMasehi;
-                if(!document.getElementById('bulanSheet').value.startsWith('/')) {
-                    document.getElementById('bulanSheet').value = '/07/2026';
-                    triggerBulan.textContent = 'Juli 2026';
+                // Default ke 'Tampilkan Semua' jika sebelumnya di format Hijriyah
+                if(!document.getElementById('bulanSheet').value.includes('/20') && document.getElementById('bulanSheet').value !== 'ALL') {
+                    document.getElementById('bulanSheet').value = 'ALL';
+                    triggerBulan.textContent = 'Tampilkan Semua';
                 }
             } else if (catOut === 'KAS PW & MOBIL') {
-                wrapperBulan.style.display = 'none'; // Sembunyikan bulan karena paradoks
+                wrapperBulan.style.display = 'none'; 
             } else {
                 wrapperBulan.style.display = 'block';
                 optionsData['bulanSheet'] = bulanHijriyah;
-                if(document.getElementById('bulanSheet').value.startsWith('/')) {
+                if(document.getElementById('bulanSheet').value.includes('/20') || document.getElementById('bulanSheet').value === 'ALL') {
                     document.getElementById('bulanSheet').value = '2/48';
                     triggerBulan.textContent = 'Bulan 2 (Shafar 1448)';
                 }
@@ -374,7 +374,7 @@
                 document.getElementById('pageTitle').textContent = "Input Kas";
                 let currentOut = document.getElementById('cat_out').value;
                 if(currentOut === 'KAS PW & MOBIL') {
-                    document.getElementById('cat_in').value = 'KAS PW'; document.getElementById('trigger_cat_in').textContent = 'Buku Kas PW';
+                    document.getElementById('cat_in').value = 'KAS PW'; document.getElementById('trigger_cat_in').textContent = 'BUKU KAS OPRASIONAL';
                 } else {
                     document.getElementById('cat_in').value = currentOut; document.getElementById('trigger_cat_in').textContent = optionsData.cat_in.find(o => o.val === currentOut).label;
                 }
@@ -407,31 +407,51 @@
             const catOut = document.getElementById('cat_out').value;
             let filteredData = rawHistoryData;
             
-            // Logika Pintar: Filter khusus Kas Mobil secara Frontend
+            // Logika Ekstraksi Tanggal untuk Kas Mobil (Masehi)
             if (catOut === 'KAS MOBIL') {
-                const filterMasehi = document.getElementById('bulanSheet').value; // Contoh: '/07/2026'
-                filteredData = rawHistoryData.filter(item => item.tanggal.includes(filterMasehi));
+                const filterMasehi = document.getElementById('bulanSheet').value; // 'ALL' atau '5/2026'
                 
-                // Menghitung ulang Summary khusus bulan Masehi yang dipilih
+                if (filterMasehi !== 'ALL') {
+                    let [fMonth, fYear] = filterMasehi.split('/');
+                    filteredData = rawHistoryData.filter(item => {
+                        let d = new Date(item.tanggal);
+                        if(isNaN(d)) return false; // Menyaring baris kosong atau header
+                        return (d.getMonth() + 1) == parseInt(fMonth) && d.getFullYear() == parseInt(fYear);
+                    });
+                } else {
+                    // Jika ALL, tetap singkirkan teks header yang ikut terbaca dari baris 7
+                    filteredData = rawHistoryData.filter(item => !isNaN(new Date(item.tanggal)));
+                }
+                
                 let mIn = 0; let mOut = 0; let mSaldo = 0;
-                filteredData.forEach(item => { mIn += item.masuk; mOut += item.keluar; });
-                if(filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo; // Saldo dari transaksi paling akhir
+                filteredData.forEach(item => { mIn += (Number(item.masuk) || 0); mOut += (Number(item.keluar) || 0); });
+                
+                // Menentukan nilai Saldo Akhir yang ditampilkan di kartu atas
+                if (filterMasehi === 'ALL') {
+                    mSaldo = backendSummary.saldo;
+                    if(!mSaldo && filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo;
+                } else {
+                    if(filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo;
+                }
                 
                 document.getElementById('sumMasuk').textContent = formatRp(mIn);
                 document.getElementById('sumKeluar').textContent = formatRp(mOut);
                 document.getElementById('sumSaldo').textContent = formatRp(mSaldo);
             } else {
-                // Untuk Kas PW dan Gabungan, gunakan perhitungan mutlak dari backend
                 document.getElementById('sumMasuk').textContent = formatRp(backendSummary.pemasukan);
                 document.getElementById('sumKeluar').textContent = formatRp(backendSummary.pengeluaran);
                 document.getElementById('sumSaldo').textContent = formatRp(backendSummary.saldo);
             }
 
-            // Urutkan List (Terbaru di atas)
+            // Memperbaiki Pengurutan Tanggal Masehi dan Hijriyah (Terbaru di atas)
             if (catOut !== 'KAS PW & MOBIL') {
                 filteredData.sort((a, b) => {
-                     let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
-                     return dA.localeCompare(dB);
+                    if (catOut === 'KAS MOBIL') {
+                        return new Date(b.tanggal) - new Date(a.tanggal); // Urutan kalender Masehi aktual
+                    } else {
+                        let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
+                        return dA.localeCompare(dB); // Urutan string Hijriyah
+                    }
                 });
             }
 
@@ -453,9 +473,10 @@
             if (!rawDateStr) return alert('Pilih tanggal terlebih dahulu.');
             const isMobil = document.getElementById('cat_in').value === 'KAS MOBIL';
             let finalTanggalInput = "";
+            
             if (isMobil) {
                 const dateObj = new Date(rawDateStr);
-                finalTanggalInput = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth()+1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+                finalTanggalInput = `${String(dateObj.getMonth()+1)}/${String(dateObj.getDate())}/${dateObj.getFullYear()}`;
             } else {
                 if (!tanggalHijriyahFinal) return alert('Gagal memformat tanggal Hijriyah.');
                 finalTanggalInput = tanggalHijriyahFinal;
@@ -485,7 +506,7 @@
         window.addEventListener('online', () => { document.getElementById('statusJaringan').textContent = 'Online'; document.getElementById('statusJaringan').className = "status-online"; });
         window.addEventListener('offline', () => { document.getElementById('statusJaringan').textContent = 'Offline'; document.getElementById('statusJaringan').className = "status-offline"; });
         
-        checkSession(); // Jalankan saat awal
+        checkSession(); 
     </script>
 </body>
 </html>
