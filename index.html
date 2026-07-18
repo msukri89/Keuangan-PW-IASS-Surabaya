@@ -30,7 +30,6 @@
         .status-online { background-color: #E5F3EB; color: var(--iass-green); }
         .status-offline { background-color: #FCECEB; color: #D73A49; }
 
-        /* Tombol Logout */
         #btnLogout {
             position: fixed; top: 15px; left: 15px; z-index: 1000;
             font-size: 11px; padding: 5px 10px; border-radius: 20px; font-weight: 600;
@@ -61,11 +60,10 @@
         .form-row label { width: 35%; font-size: 14px; font-weight: 500; }
         .form-input-container { width: 65%; display: flex; flex-direction: column; }
         
-        input[type="text"], input[type="password"], input[type="date"] {
+        input[type="text"], input[type="password"] {
             width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent; color: var(--text-main);
         }
         
-        /* Khusus input login agar teksnya di kiri */
         .login-input { text-align: left !important; padding: 15px !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important;}
         
         .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
@@ -84,10 +82,9 @@
         .text-masuk { color: var(--iass-green); }
         .text-keluar { color: #D73A49; }
 
-        .history-filters { display: flex; gap: 10px; padding: 15px; background: var(--card-bg); border-radius: 12px; margin-bottom: 10px; align-items: center; justify-content: space-between; transition: 0.3s; }
-        .history-filters input { text-align: left; font-size: 13px; padding: 5px; width: 40%; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box;}
-        .history-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .history-item:last-child { border-bottom: none; }
+        .history-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);}
+        .history-item:first-child { border-radius: 12px 12px 0 0; }
+        .history-item:last-child { border-bottom: none; border-radius: 0 0 12px 12px; }
         .history-info p { margin: 0; font-size: 14px; font-weight: 500; text-transform: capitalize;}
         .history-info small { color: var(--text-muted); font-size: 12px;}
         .history-amount { font-weight: 600; font-size: 15px;}
@@ -116,7 +113,7 @@
         .modal-option:active { background-color: var(--bg-color); }
         
         .flatpickr-calendar { font-family: inherit !important; border-radius: 12px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; border: none !important; }
-        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background: var(--iass-orange) !important; border-color: var(--iass-orange) !important; }
+        .flatpickr-day.selected { background: var(--iass-orange) !important; border-color: var(--iass-orange) !important; }
     </style>
 </head>
 <body>
@@ -184,8 +181,9 @@
             <div id="trigger_cat_out" class="custom-select-trigger" onclick="openModal('cat_out', 'Lihat Laporan Kas')">Lihat: Kas PW</div>
             <input type="hidden" id="cat_out" value="KAS PW">
 
+            <!-- Dropdown Bulan Dinamis -->
             <div id="wrapper_bulanSheet">
-                <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan Hijriyah')">Bulan 2 (Shafar 1448)</div>
+                <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan')">Bulan 2 (Shafar 1448)</div>
                 <input type="hidden" id="bulanSheet" value="2/48">
             </div>
 
@@ -204,17 +202,8 @@
                 </div>
             </div>
 
-            <div class="history-filters" id="wrapper_filter">
-                <input type="text" id="filterMulai" placeholder="Pilih Mulai">
-                <span style="font-size: 12px; color: var(--text-muted);">s/d</span>
-                <input type="text" id="filterSampai" placeholder="Pilih Sampai">
-            </div>
-            <div id="infoFilter" style="display:none; text-align:center; font-size:11px; color:#D73A49; margin-bottom:10px;">
-                Filter tanggal dinonaktifkan pada tampilan Gabungan karena perbedaan format kalender.
-            </div>
-            
-            <div class="card" id="historyList">
-                <div style="padding:20px; text-align:center; color:gray; font-size:14px;">Memuat data...</div>
+            <div id="historyList" style="border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom:20px;">
+                <div style="padding:20px; text-align:center; color:gray; font-size:14px; background:white; border-radius:12px;">Memuat data...</div>
             </div>
         </div>
     </div>
@@ -250,181 +239,60 @@
 
     <script>
         const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
-        let tanggalHijriyahFinal = ""; let rawHistoryData = [];
+        let tanggalHijriyahFinal = ""; let rawHistoryData = []; let backendSummary = {};
 
-        // --- SISTEM LOGIN & OTORISASI ---
+        // --- SISTEM LOGIN ---
         function checkSession() {
-            const role = localStorage.getItem('iassRole');
-            const nama = localStorage.getItem('iassNama');
+            const role = localStorage.getItem('iassRole'); const nama = localStorage.getItem('iassNama');
             if (role) {
                 document.getElementById('btnLogout').style.display = 'block';
                 document.getElementById('bottomNav').style.display = 'flex';
                 document.getElementById('welcomeMsg').style.display = 'block';
                 document.getElementById('welcomeMsg').textContent = `Halo, ${toProperCase(nama)} (${role})`;
                 
-                if (role.toLowerCase() === 'bendahara') {
-                    document.getElementById('navInputBtn').style.display = 'flex';
-                    switchTab('input');
-                } else {
-                    // Jika bukan bendahara, sembunyikan menu input total
-                    document.getElementById('navInputBtn').style.display = 'none';
-                    switchTab('riwayat');
-                }
+                if (role.toLowerCase() === 'bendahara') { document.getElementById('navInputBtn').style.display = 'flex'; switchTab('input'); } 
+                else { document.getElementById('navInputBtn').style.display = 'none'; switchTab('riwayat'); }
             } else {
-                // Tampilan default jika belum login
-                document.getElementById('btnLogout').style.display = 'none';
-                document.getElementById('bottomNav').style.display = 'none';
+                document.getElementById('btnLogout').style.display = 'none'; document.getElementById('bottomNav').style.display = 'none';
                 document.getElementById('welcomeMsg').style.display = 'none';
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                document.getElementById('viewLogin').classList.add('active');
-                document.getElementById('pageTitle').textContent = "Masuk Sistem";
+                document.getElementById('viewLogin').classList.add('active'); document.getElementById('pageTitle').textContent = "Masuk Sistem";
             }
         }
 
         function doLogin() {
-            const user = document.getElementById('loginUser').value;
-            const pass = document.getElementById('loginPass').value;
+            const user = document.getElementById('loginUser').value; const pass = document.getElementById('loginPass').value;
             if(!user || !pass) return alert("Isi Username dan Password!");
+            const btn = document.getElementById('btnProsesLogin'); btn.textContent = "Mengecek Akun..."; btn.disabled = true;
 
-            const btn = document.getElementById('btnProsesLogin');
-            btn.textContent = "Mengecek Akun..."; btn.disabled = true;
-
-            fetch(URL_APPS_SCRIPT, { 
-                method: 'POST', 
-                body: JSON.stringify({ action: 'login', username: user, password: pass }), 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
-            })
+            fetch(URL_APPS_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'login', username: user, password: pass }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
-                    localStorage.setItem('iassRole', res.role);
-                    localStorage.setItem('iassNama', res.nama);
-                    document.getElementById('loginUser').value = "";
-                    document.getElementById('loginPass').value = "";
-                    checkSession();
+                    localStorage.setItem('iassRole', res.role); localStorage.setItem('iassNama', res.nama);
+                    document.getElementById('loginUser').value = ""; document.getElementById('loginPass').value = ""; checkSession();
                 } else { alert(res.message); }
             })
-            .catch(() => alert('Gagal terhubung. Pastikan ada sinyal internet saat login perdana.'))
+            .catch(() => alert('Gagal terhubung. Pastikan ada sinyal internet.'))
             .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
         }
+        function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); checkSession(); } }
 
-        function logout() {
-            if(confirm("Yakin ingin keluar dari akun ini?")) {
-                localStorage.removeItem('iassRole');
-                localStorage.removeItem('iassNama');
-                checkSession();
-            }
-        }
-
-        // --- SISTEM APLIKASI (SAMA SEPERTI SEBELUMNYA) ---
+        // --- KONFIGURASI KALENDER & FORMATTER ---
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
         const dateInput = flatpickr("#tanggal", {
             ...flatpickrConfig,
             onChange: function(selectedDates, dateStr) {
                 tanggalHijriyahFinal = dateStr ? convertToHijri(dateStr) : "";
-                if(document.getElementById('cat_in').value === 'KAS PW') {
-                    document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : "";
-                }
+                if(document.getElementById('cat_in').value === 'KAS PW') { document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : ""; }
             }
         });
-        const filterStart = flatpickr("#filterMulai", { ...flatpickrConfig, onChange: () => renderHistory() });
-        const filterEnd = flatpickr("#filterSampai", { ...flatpickrConfig, onChange: () => renderHistory() });
 
         const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
         document.getElementById('nominal').addEventListener('input', function() {
             let val = this.value.replace(/\D/g, ''); this.value = val ? new Intl.NumberFormat('id-ID').format(val) : '';
         });
         function toProperCase(str) { return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()); }
-
-        const optionsData = {
-            'cat_in': [ { val: 'KAS PW', label: 'Buku Kas PW' }, { val: 'KAS MOBIL', label: 'Buku Kas Mobil' } ],
-            'cat_out': [ { val: 'KAS PW', label: 'Lihat: Kas PW' }, { val: 'KAS MOBIL', label: 'Lihat: Kas Mobil' }, { val: 'KAS PW & MOBIL', label: 'Lihat: Kas PW & Mobil (Gabungan)' } ],
-            'bulanSheet': [
-                { val: '1/48', label: 'Bulan 1 (Muharram 1448)' }, { val: '2/48', label: 'Bulan 2 (Shafar 1448)' }, { val: '3/48', label: 'Bulan 3 (R. Awal 1448)' },
-                { val: '4/48', label: 'Bulan 4 (R. Tsani 1448)' }, { val: '5/48', label: 'Bulan 5 (J. Ula 1448)' }, { val: '6/48', label: 'Bulan 6 (J. Tsani 1448)' },
-                { val: '7/48', label: 'Bulan 7 (Rajab 1448)' }, { val: '8/48', label: 'Bulan 8 (Sya\'ban 1448)' }, { val: '9/48', label: 'Bulan 9 (Ramadhan 1448)' },
-                { val: '10/48', label: 'Bulan 10 (Syawal 1448)' }, { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' }, { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
-            ]
-        };
-
-        function adaptParadoxUI() {
-            if(document.getElementById('cat_in').value === 'KAS MOBIL') {
-                document.getElementById('hijriInfo').style.display = 'none';
-            } else {
-                document.getElementById('hijriInfo').style.display = 'block';
-                if(tanggalHijriyahFinal) document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`;
-            }
-
-            const catOut = document.getElementById('cat_out').value;
-            if(catOut === 'KAS MOBIL') {
-                document.getElementById('wrapper_bulanSheet').style.display = 'none';
-                document.getElementById('wrapper_filter').style.opacity = '1';
-                document.getElementById('wrapper_filter').style.pointerEvents = 'auto';
-                document.getElementById('infoFilter').style.display = 'none';
-            } else if (catOut === 'KAS PW & MOBIL') {
-                document.getElementById('wrapper_bulanSheet').style.display = 'block';
-                document.getElementById('wrapper_filter').style.opacity = '0.3';
-                document.getElementById('wrapper_filter').style.pointerEvents = 'none';
-                document.getElementById('infoFilter').style.display = 'block';
-                filterStart.clear(); filterEnd.clear();
-            } else {
-                document.getElementById('wrapper_bulanSheet').style.display = 'block';
-                document.getElementById('wrapper_filter').style.opacity = '1';
-                document.getElementById('wrapper_filter').style.pointerEvents = 'auto';
-                document.getElementById('infoFilter').style.display = 'none';
-            }
-        }
-
-        function openModal(targetId, title) {
-            const modal = document.getElementById('customModal');
-            document.getElementById('modalTitle').textContent = title;
-            const optionsContainer = document.getElementById('modalOptions');
-            optionsContainer.innerHTML = '';
-            optionsData[targetId].forEach(opt => {
-                let div = document.createElement('div'); div.className = 'modal-option'; div.textContent = opt.label;
-                div.onclick = function() {
-                    document.getElementById(targetId).value = opt.val;
-                    document.getElementById('trigger_' + targetId).textContent = opt.label;
-                    modal.style.display = 'none'; adaptParadoxUI();
-                    if(targetId === 'cat_out' || targetId === 'bulanSheet') fetchData();
-                };
-                optionsContainer.appendChild(div);
-            });
-            modal.style.display = 'flex';
-        }
-
-        function closeModal(e) { if(e.target === document.getElementById('customModal')) document.getElementById('customModal').style.display = 'none'; }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            
-            if(tab === 'input') {
-                document.getElementById('viewInput').classList.add('active');
-                document.getElementById('navInputBtn').classList.add('active');
-                document.getElementById('pageTitle').textContent = "Input Kas";
-                
-                let currentOut = document.getElementById('cat_out').value;
-                if(currentOut === 'KAS PW & MOBIL') {
-                    document.getElementById('cat_in').value = 'KAS PW';
-                    document.getElementById('trigger_cat_in').textContent = 'Buku Kas PW';
-                } else {
-                    document.getElementById('cat_in').value = currentOut;
-                    document.getElementById('trigger_cat_in').textContent = optionsData.cat_in.find(o => o.val === currentOut).label;
-                }
-            } else {
-                document.getElementById('viewRiwayat').classList.add('active');
-                document.getElementById('navRiwayatBtn').classList.add('active');
-                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
-                
-                let inVal = document.getElementById('cat_in').value;
-                document.getElementById('cat_out').value = inVal;
-                document.getElementById('trigger_cat_out').textContent = optionsData.cat_out.find(o => o.val === inVal).label;
-                fetchData(); 
-            }
-            adaptParadoxUI(); window.scrollTo(0, 0); 
-        }
-
         function convertToHijri(dateStr) {
             try {
                 const date = new Date(dateStr);
@@ -434,52 +302,132 @@
             } catch (err) { return ""; }
         }
 
+        // --- SISTEM DROPDOWN DINAMIS (PARADOKS SOLVER) ---
+        const bulanHijriyah = [
+            { val: '1/48', label: 'Bulan 1 (Muharram 1448)' }, { val: '2/48', label: 'Bulan 2 (Shafar 1448)' }, { val: '3/48', label: 'Bulan 3 (R. Awal 1448)' },
+            { val: '4/48', label: 'Bulan 4 (R. Tsani 1448)' }, { val: '5/48', label: 'Bulan 5 (J. Ula 1448)' }, { val: '6/48', label: 'Bulan 6 (J. Tsani 1448)' },
+            { val: '7/48', label: 'Bulan 7 (Rajab 1448)' }, { val: '8/48', label: 'Bulan 8 (Sya\'ban 1448)' }, { val: '9/48', label: 'Bulan 9 (Ramadhan 1448)' },
+            { val: '10/48', label: 'Bulan 10 (Syawal 1448)' }, { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' }, { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
+        ];
+
+        const bulanMasehi = [
+            { val: '/05/2026', label: 'Mei 2026' }, { val: '/06/2026', label: 'Juni 2026' }, { val: '/07/2026', label: 'Juli 2026' },
+            { val: '/08/2026', label: 'Agustus 2026' }, { val: '/09/2026', label: 'September 2026' }, { val: '/10/2026', label: 'Oktober 2026' },
+            { val: '/11/2026', label: 'November 2026' }, { val: '/12/2026', label: 'Desember 2026' }, { val: '/01/2027', label: 'Januari 2027' }
+        ];
+
+        let optionsData = {
+            'cat_in': [ { val: 'KAS PW', label: 'BUKU KAS OPRASIONAL' }, { val: 'KAS MOBIL', label: 'BUKU KAS ARMADA' } ],
+            'cat_out': [ { val: 'KAS PW', label: 'KAS OPRASIONAL' }, { val: 'KAS MOBIL', label: 'KAS ARMADA' }, { val: 'KAS PW & MOBIL', label: 'KAS OPRASIONAL & ARMADA (GABUNGAN)' } ],
+            'bulanSheet': bulanHijriyah
+        };
+
+        function adaptParadoxUI() {
+            if(document.getElementById('cat_in').value === 'KAS MOBIL') { document.getElementById('hijriInfo').style.display = 'none'; } 
+            else { document.getElementById('hijriInfo').style.display = 'block'; if(tanggalHijriyahFinal) document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`; }
+
+            const catOut = document.getElementById('cat_out').value;
+            const wrapperBulan = document.getElementById('wrapper_bulanSheet');
+            const triggerBulan = document.getElementById('trigger_bulanSheet');
+
+            if (catOut === 'KAS MOBIL') {
+                wrapperBulan.style.display = 'block';
+                optionsData['bulanSheet'] = bulanMasehi;
+                if(!document.getElementById('bulanSheet').value.startsWith('/')) {
+                    document.getElementById('bulanSheet').value = '/07/2026';
+                    triggerBulan.textContent = 'Juli 2026';
+                }
+            } else if (catOut === 'KAS PW & MOBIL') {
+                wrapperBulan.style.display = 'none'; // Sembunyikan bulan karena paradoks
+            } else {
+                wrapperBulan.style.display = 'block';
+                optionsData['bulanSheet'] = bulanHijriyah;
+                if(document.getElementById('bulanSheet').value.startsWith('/')) {
+                    document.getElementById('bulanSheet').value = '2/48';
+                    triggerBulan.textContent = 'Bulan 2 (Shafar 1448)';
+                }
+            }
+        }
+
+        function openModal(targetId, title) {
+            const modal = document.getElementById('customModal'); document.getElementById('modalTitle').textContent = title;
+            const optionsContainer = document.getElementById('modalOptions'); optionsContainer.innerHTML = '';
+            optionsData[targetId].forEach(opt => {
+                let div = document.createElement('div'); div.className = 'modal-option'; div.textContent = opt.label;
+                div.onclick = function() {
+                    document.getElementById(targetId).value = opt.val; document.getElementById('trigger_' + targetId).textContent = opt.label;
+                    modal.style.display = 'none'; adaptParadoxUI();
+                    if(targetId === 'cat_out' || targetId === 'bulanSheet') fetchData();
+                };
+                optionsContainer.appendChild(div);
+            });
+            modal.style.display = 'flex';
+        }
+        function closeModal(e) { if(e.target === document.getElementById('customModal')) document.getElementById('customModal').style.display = 'none'; }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            if(tab === 'input') {
+                document.getElementById('viewInput').classList.add('active'); document.getElementById('navInputBtn').classList.add('active');
+                document.getElementById('pageTitle').textContent = "Input Kas";
+                let currentOut = document.getElementById('cat_out').value;
+                if(currentOut === 'KAS PW & MOBIL') {
+                    document.getElementById('cat_in').value = 'KAS PW'; document.getElementById('trigger_cat_in').textContent = 'Buku Kas PW';
+                } else {
+                    document.getElementById('cat_in').value = currentOut; document.getElementById('trigger_cat_in').textContent = optionsData.cat_in.find(o => o.val === currentOut).label;
+                }
+            } else {
+                document.getElementById('viewRiwayat').classList.add('active'); document.getElementById('navRiwayatBtn').classList.add('active');
+                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
+                let inVal = document.getElementById('cat_in').value; document.getElementById('cat_out').value = inVal;
+                document.getElementById('trigger_cat_out').textContent = optionsData.cat_out.find(o => o.val === inVal).label;
+                fetchData(); 
+            }
+            adaptParadoxUI(); window.scrollTo(0, 0); 
+        }
+
         function fetchData() {
-            if(!navigator.onLine) { document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px;">Anda sedang offline.</div>'; return; }
-            document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Mengambil data...</div>';
+            if(!navigator.onLine) { document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px; background:white; border-radius:12px;">Anda sedang offline.</div>'; return; }
+            document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px; background:white; border-radius:12px;">Mengambil data...</div>';
             
             const reqData = { action: 'getData', kategori: document.getElementById('cat_out').value, targetSheet: document.getElementById('bulanSheet').value };
             fetch(URL_APPS_SCRIPT, { method: 'POST', body: JSON.stringify(reqData), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
             .then(res => res.json())
             .then(result => {
                 if(result.status === 'success') {
-                    document.getElementById('sumSaldo').textContent = formatRp(result.summary.saldo);
-                    document.getElementById('sumMasuk').textContent = formatRp(result.summary.pemasukan);
-                    document.getElementById('sumKeluar').textContent = formatRp(result.summary.pengeluaran);
-                    rawHistoryData = result.history; renderHistory();
-                } else { document.getElementById('historyList').innerHTML = `<div style="padding:20px; text-align:center; color:red; font-size:14px;">${result.message}</div>`; }
-            }).catch(e => { document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px;">Gagal terhubung.</div>'; });
+                    backendSummary = result.summary; rawHistoryData = result.history; renderHistory();
+                } else { document.getElementById('historyList').innerHTML = `<div style="padding:20px; text-align:center; color:red; font-size:14px; background:white; border-radius:12px;">${result.message}</div>`; }
+            }).catch(e => { document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px; background:white; border-radius:12px;">Gagal terhubung.</div>'; });
         }
 
         function renderHistory() {
-            const listContainer = document.getElementById('historyList');
-            listContainer.innerHTML = '';
-            const startInput = document.getElementById('filterMulai').value;
-            const endInput = document.getElementById('filterSampai').value;
+            const listContainer = document.getElementById('historyList'); listContainer.innerHTML = '';
             const catOut = document.getElementById('cat_out').value;
-            
             let filteredData = rawHistoryData;
             
-            if((startInput || endInput) && catOut !== 'KAS PW & MOBIL') {
-                let startVal, endVal;
-                if (catOut === 'KAS MOBIL') {
-                    startVal = startInput ? startInput.replace(/-/g, '') : '00000000';
-                    endVal = endInput ? endInput.replace(/-/g, '') : '99999999';
-                    filteredData = rawHistoryData.filter(item => {
-                        let parts = item.tanggal.split('/'); 
-                        if(parts.length === 3) { let itemVal = parts[2] + parts[1] + parts[0]; return itemVal >= startVal && itemVal <= endVal; }
-                        return true;
-                    });
-                } else {
-                    startVal = startInput ? convertToHijri(startInput).split('/').reverse().join('') : '00000000';
-                    endVal = endInput ? convertToHijri(endInput).split('/').reverse().join('') : '99999999';
-                    filteredData = rawHistoryData.filter(item => {
-                        let itemVal = item.tanggal.split('/').reverse().join('');
-                        return itemVal >= startVal && itemVal <= endVal;
-                    });
-                }
+            // Logika Pintar: Filter khusus Kas Mobil secara Frontend
+            if (catOut === 'KAS MOBIL') {
+                const filterMasehi = document.getElementById('bulanSheet').value; // Contoh: '/07/2026'
+                filteredData = rawHistoryData.filter(item => item.tanggal.includes(filterMasehi));
+                
+                // Menghitung ulang Summary khusus bulan Masehi yang dipilih
+                let mIn = 0; let mOut = 0; let mSaldo = 0;
+                filteredData.forEach(item => { mIn += item.masuk; mOut += item.keluar; });
+                if(filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo; // Saldo dari transaksi paling akhir
+                
+                document.getElementById('sumMasuk').textContent = formatRp(mIn);
+                document.getElementById('sumKeluar').textContent = formatRp(mOut);
+                document.getElementById('sumSaldo').textContent = formatRp(mSaldo);
+            } else {
+                // Untuk Kas PW dan Gabungan, gunakan perhitungan mutlak dari backend
+                document.getElementById('sumMasuk').textContent = formatRp(backendSummary.pemasukan);
+                document.getElementById('sumKeluar').textContent = formatRp(backendSummary.pengeluaran);
+                document.getElementById('sumSaldo').textContent = formatRp(backendSummary.saldo);
             }
 
+            // Urutkan List (Terbaru di atas)
             if (catOut !== 'KAS PW & MOBIL') {
                 filteredData.sort((a, b) => {
                      let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
@@ -487,7 +435,7 @@
                 });
             }
 
-            if(filteredData.length === 0) { listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Tidak ada transaksi</div>'; return; }
+            if(filteredData.length === 0) { listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px; background:white; border-radius:12px;">Tidak ada transaksi di bulan ini.</div>'; return; }
 
             filteredData.reverse().forEach(item => {
                 const isMasuk = item.masuk > 0; const amt = formatRp(isMasuk ? item.masuk : item.keluar);
@@ -503,10 +451,8 @@
             e.preventDefault();
             const rawDateStr = document.getElementById('tanggal').value; 
             if (!rawDateStr) return alert('Pilih tanggal terlebih dahulu.');
-
             const isMobil = document.getElementById('cat_in').value === 'KAS MOBIL';
             let finalTanggalInput = "";
-
             if (isMobil) {
                 const dateObj = new Date(rawDateStr);
                 finalTanggalInput = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth()+1).padStart(2, '0')}/${dateObj.getFullYear()}`;
@@ -515,13 +461,10 @@
                 finalTanggalInput = tanggalHijriyahFinal;
             }
 
-            const rawNominal = document.getElementById('nominal').value.replace(/\./g, '');
-            const btn = document.getElementById('btnSimpan');
-            
+            const rawNominal = document.getElementById('nominal').value.replace(/\./g, ''); const btn = document.getElementById('btnSimpan');
             const data = {
-                action: 'insert', kategori: document.getElementById('cat_in').value,
-                tanggal: finalTanggalInput, uraian: toProperCase(document.getElementById('uraian').value),
-                jenis: document.querySelector('input[name="jenis"]:checked').value, nominal: Number(rawNominal)
+                action: 'insert', kategori: document.getElementById('cat_in').value, tanggal: finalTanggalInput, 
+                uraian: toProperCase(document.getElementById('uraian').value), jenis: document.querySelector('input[name="jenis"]:checked').value, nominal: Number(rawNominal)
             };
 
             if (navigator.onLine) {
@@ -542,8 +485,7 @@
         window.addEventListener('online', () => { document.getElementById('statusJaringan').textContent = 'Online'; document.getElementById('statusJaringan').className = "status-online"; });
         window.addEventListener('offline', () => { document.getElementById('statusJaringan').textContent = 'Offline'; document.getElementById('statusJaringan').className = "status-offline"; });
         
-        // Memulai Pengecekan Login Saat Aplikasi Dibuka
-        checkSession();
+        checkSession(); // Jalankan saat awal
     </script>
 </body>
 </html>
