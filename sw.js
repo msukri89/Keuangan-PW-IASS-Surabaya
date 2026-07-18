@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kas-iass-v1'; // Anda cukup ubah angka 'v1' ke 'v2', 'v3' dst. saat ingin update besar
+const CACHE_NAME = 'kas-iass-v2'; // Anda cukup ubah angka 'v1' ke 'v2', 'v3' dst. saat ingin update besar
 
 self.addEventListener('install', (event) => {
     // Memaksa service worker baru untuk aktif segera
