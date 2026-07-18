@@ -30,6 +30,14 @@
         .status-online { background-color: #E5F3EB; color: var(--iass-green); }
         .status-offline { background-color: #FCECEB; color: #D73A49; }
 
+        /* Tombol Logout */
+        #btnLogout {
+            position: fixed; top: 15px; left: 15px; z-index: 1000;
+            font-size: 11px; padding: 5px 10px; border-radius: 20px; font-weight: 600;
+            background-color: #FCECEB; color: #D73A49; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer; display: none;
+        }
+
         .header { 
             position: sticky; top: 0; z-index: 100; text-align: center; 
             padding: 25px 0 15px 0; margin-bottom: 10px;
@@ -43,8 +51,7 @@
             width: 100%; padding: 14px 15px; font-size: 15px; border: 1px solid var(--border-color);
             border-radius: 10px; background-color: var(--card-bg); color: var(--text-main);
             margin-bottom: 15px; font-weight: 600; cursor: pointer; text-align: left;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
         }
         .custom-select-trigger::after { content: "▼"; font-size: 12px; color: var(--text-muted); }
 
@@ -54,9 +61,13 @@
         .form-row label { width: 35%; font-size: 14px; font-weight: 500; }
         .form-input-container { width: 65%; display: flex; flex-direction: column; }
         
-        input[type="text"], input[type="date"] {
+        input[type="text"], input[type="password"], input[type="date"] {
             width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent; color: var(--text-main);
         }
+        
+        /* Khusus input login agar teksnya di kiri */
+        .login-input { text-align: left !important; padding: 15px !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important;}
+        
         .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
         .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 14px; }
         .radio-group input[type="radio"] { margin-right: 5px; accent-color: var(--iass-orange); transform: scale(1.2); }
@@ -81,7 +92,6 @@
         .history-info small { color: var(--text-muted); font-size: 12px;}
         .history-amount { font-weight: 600; font-size: 15px;}
 
-        /* Icon iOS Minimalis */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg);
             display: flex; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom); z-index: 100;
@@ -91,7 +101,6 @@
             padding: 10px 0; color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer;
         }
         .nav-icon { width: 22px; height: 22px; margin-bottom: 4px; stroke: var(--text-muted); }
-        
         .nav-item.active { color: var(--iass-green); }
         .nav-item.active .nav-icon { stroke: var(--iass-green); }
 
@@ -112,15 +121,26 @@
 </head>
 <body>
     <div id="statusJaringan" class="status-online">Online</div>
+    <button id="btnLogout" onclick="logout()">Keluar</button>
 
     <div class="container">
         <div class="header">
             <img src="logo.png" alt="Logo IASS" class="header-logo">
-            <h2 id="pageTitle">Input Kas</h2>
+            <h2 id="pageTitle">Sistem Kas IASS</h2>
+            <p id="welcomeMsg" style="font-size:12px; color:var(--text-muted); margin-top:5px; display:none;"></p>
+        </div>
+
+        <!-- VIEW: LOGIN -->
+        <div id="viewLogin" class="view-section active">
+            <div class="card" style="padding: 10px 0;">
+                <input type="text" id="loginUser" class="login-input" placeholder="Username" autocomplete="off">
+                <input type="password" id="loginPass" class="login-input" placeholder="Password" style="border-bottom:none !important;">
+            </div>
+            <button onclick="doLogin()" class="btn-primary" id="btnProsesLogin">Masuk Aplikasi</button>
         </div>
 
         <!-- VIEW: INPUT TRANSAKSI -->
-        <div id="viewInput" class="view-section active">
+        <div id="viewInput" class="view-section">
             <div id="trigger_cat_in" class="custom-select-trigger" onclick="openModal('cat_in', 'Pilih Kategori Kas')">Buku Kas PW</div>
             <input type="hidden" id="cat_in" value="KAS PW">
 
@@ -161,11 +181,9 @@
 
         <!-- VIEW: RIWAYAT & RINGKASAN -->
         <div id="viewRiwayat" class="view-section">
-            
             <div id="trigger_cat_out" class="custom-select-trigger" onclick="openModal('cat_out', 'Lihat Laporan Kas')">Lihat: Kas PW</div>
             <input type="hidden" id="cat_out" value="KAS PW">
 
-            <!-- Dropdown Bulan akan disembunyikan otomatis jika KAS MOBIL dipilih -->
             <div id="wrapper_bulanSheet">
                 <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan Hijriyah')">Bulan 2 (Shafar 1448)</div>
                 <input type="hidden" id="bulanSheet" value="2/48">
@@ -186,14 +204,13 @@
                 </div>
             </div>
 
-            <!-- Filter tanggal akan di-disable jika Gabungan dipilih -->
             <div class="history-filters" id="wrapper_filter">
                 <input type="text" id="filterMulai" placeholder="Pilih Mulai">
                 <span style="font-size: 12px; color: var(--text-muted);">s/d</span>
                 <input type="text" id="filterSampai" placeholder="Pilih Sampai">
             </div>
             <div id="infoFilter" style="display:none; text-align:center; font-size:11px; color:#D73A49; margin-bottom:10px;">
-                Filter tanggal dinonaktifkan pada tampilan Gabungan karena perbedaan format kalender (Masehi & Hijriyah).
+                Filter tanggal dinonaktifkan pada tampilan Gabungan karena perbedaan format kalender.
             </div>
             
             <div class="card" id="historyList">
@@ -202,16 +219,16 @@
         </div>
     </div>
 
-    <!-- Navigasi Bawah Minimalis ala iOS -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('input')">
+    <!-- Navigasi Bawah -->
+    <div class="bottom-nav" id="bottomNav" style="display:none;">
+        <div class="nav-item active" id="navInputBtn" onclick="switchTab('input')">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
             Input
         </div>
-        <div class="nav-item" onclick="switchTab('riwayat')">
+        <div class="nav-item" id="navRiwayatBtn" onclick="switchTab('riwayat')">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -233,9 +250,73 @@
 
     <script>
         const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbyZlyYAVIB3U9jV3BLZOLUS0bXyQaif0pW5v1kfqtmQ73-SREo-b_xFZPlWapuoPbhJtA/exec';
-        let tanggalHijriyahFinal = ""; 
-        let rawHistoryData = [];
+        let tanggalHijriyahFinal = ""; let rawHistoryData = [];
 
+        // --- SISTEM LOGIN & OTORISASI ---
+        function checkSession() {
+            const role = localStorage.getItem('iassRole');
+            const nama = localStorage.getItem('iassNama');
+            if (role) {
+                document.getElementById('btnLogout').style.display = 'block';
+                document.getElementById('bottomNav').style.display = 'flex';
+                document.getElementById('welcomeMsg').style.display = 'block';
+                document.getElementById('welcomeMsg').textContent = `Halo, ${toProperCase(nama)} (${role})`;
+                
+                if (role.toLowerCase() === 'bendahara') {
+                    document.getElementById('navInputBtn').style.display = 'flex';
+                    switchTab('input');
+                } else {
+                    // Jika bukan bendahara, sembunyikan menu input total
+                    document.getElementById('navInputBtn').style.display = 'none';
+                    switchTab('riwayat');
+                }
+            } else {
+                // Tampilan default jika belum login
+                document.getElementById('btnLogout').style.display = 'none';
+                document.getElementById('bottomNav').style.display = 'none';
+                document.getElementById('welcomeMsg').style.display = 'none';
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                document.getElementById('viewLogin').classList.add('active');
+                document.getElementById('pageTitle').textContent = "Masuk Sistem";
+            }
+        }
+
+        function doLogin() {
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+            if(!user || !pass) return alert("Isi Username dan Password!");
+
+            const btn = document.getElementById('btnProsesLogin');
+            btn.textContent = "Mengecek Akun..."; btn.disabled = true;
+
+            fetch(URL_APPS_SCRIPT, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'login', username: user, password: pass }), 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    localStorage.setItem('iassRole', res.role);
+                    localStorage.setItem('iassNama', res.nama);
+                    document.getElementById('loginUser').value = "";
+                    document.getElementById('loginPass').value = "";
+                    checkSession();
+                } else { alert(res.message); }
+            })
+            .catch(() => alert('Gagal terhubung. Pastikan ada sinyal internet saat login perdana.'))
+            .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
+        }
+
+        function logout() {
+            if(confirm("Yakin ingin keluar dari akun ini?")) {
+                localStorage.removeItem('iassRole');
+                localStorage.removeItem('iassNama');
+                checkSession();
+            }
+        }
+
+        // --- SISTEM APLIKASI (SAMA SEPERTI SEBELUMNYA) ---
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
         const dateInput = flatpickr("#tanggal", {
             ...flatpickrConfig,
@@ -250,17 +331,14 @@
         const filterEnd = flatpickr("#filterSampai", { ...flatpickrConfig, onChange: () => renderHistory() });
 
         const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
-        
         document.getElementById('nominal').addEventListener('input', function() {
-            let val = this.value.replace(/\D/g, ''); 
-            this.value = val ? new Intl.NumberFormat('id-ID').format(val) : '';
+            let val = this.value.replace(/\D/g, ''); this.value = val ? new Intl.NumberFormat('id-ID').format(val) : '';
         });
-
         function toProperCase(str) { return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()); }
 
         const optionsData = {
             'cat_in': [ { val: 'KAS PW', label: 'Buku Kas PW' }, { val: 'KAS MOBIL', label: 'Buku Kas Mobil' } ],
-            'cat_out': [ { val: 'KAS PW', label: 'Kas PW' }, { val: 'KAS MOBIL', label: 'Kas Mobil' }, { val: 'KAS PW & MOBIL', label: 'Kas PW & Mobil (Gabungan)' } ],
+            'cat_out': [ { val: 'KAS PW', label: 'Lihat: Kas PW' }, { val: 'KAS MOBIL', label: 'Lihat: Kas Mobil' }, { val: 'KAS PW & MOBIL', label: 'Lihat: Kas PW & Mobil (Gabungan)' } ],
             'bulanSheet': [
                 { val: '1/48', label: 'Bulan 1 (Muharram 1448)' }, { val: '2/48', label: 'Bulan 2 (Shafar 1448)' }, { val: '3/48', label: 'Bulan 3 (R. Awal 1448)' },
                 { val: '4/48', label: 'Bulan 4 (R. Tsani 1448)' }, { val: '5/48', label: 'Bulan 5 (J. Ula 1448)' }, { val: '6/48', label: 'Bulan 6 (J. Tsani 1448)' },
@@ -270,7 +348,6 @@
         };
 
         function adaptParadoxUI() {
-            // Logika UI untuk Tab Input
             if(document.getElementById('cat_in').value === 'KAS MOBIL') {
                 document.getElementById('hijriInfo').style.display = 'none';
             } else {
@@ -278,7 +355,6 @@
                 if(tanggalHijriyahFinal) document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`;
             }
 
-            // Logika UI untuk Tab Riwayat
             const catOut = document.getElementById('cat_out').value;
             if(catOut === 'KAS MOBIL') {
                 document.getElementById('wrapper_bulanSheet').style.display = 'none';
@@ -287,7 +363,6 @@
                 document.getElementById('infoFilter').style.display = 'none';
             } else if (catOut === 'KAS PW & MOBIL') {
                 document.getElementById('wrapper_bulanSheet').style.display = 'block';
-                // Disable filter tanggal jika gabungan (karena paradoks waktu Masehi & Hijriyah)
                 document.getElementById('wrapper_filter').style.opacity = '0.3';
                 document.getElementById('wrapper_filter').style.pointerEvents = 'none';
                 document.getElementById('infoFilter').style.display = 'block';
@@ -305,16 +380,12 @@
             document.getElementById('modalTitle').textContent = title;
             const optionsContainer = document.getElementById('modalOptions');
             optionsContainer.innerHTML = '';
-
             optionsData[targetId].forEach(opt => {
-                let div = document.createElement('div');
-                div.className = 'modal-option';
-                div.textContent = opt.label;
+                let div = document.createElement('div'); div.className = 'modal-option'; div.textContent = opt.label;
                 div.onclick = function() {
                     document.getElementById(targetId).value = opt.val;
                     document.getElementById('trigger_' + targetId).textContent = opt.label;
-                    modal.style.display = 'none';
-                    adaptParadoxUI();
+                    modal.style.display = 'none'; adaptParadoxUI();
                     if(targetId === 'cat_out' || targetId === 'bulanSheet') fetchData();
                 };
                 optionsContainer.appendChild(div);
@@ -330,7 +401,7 @@
             
             if(tab === 'input') {
                 document.getElementById('viewInput').classList.add('active');
-                document.querySelectorAll('.nav-item')[0].classList.add('active');
+                document.getElementById('navInputBtn').classList.add('active');
                 document.getElementById('pageTitle').textContent = "Input Kas";
                 
                 let currentOut = document.getElementById('cat_out').value;
@@ -343,7 +414,7 @@
                 }
             } else {
                 document.getElementById('viewRiwayat').classList.add('active');
-                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                document.getElementById('navRiwayatBtn').classList.add('active');
                 document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
                 
                 let inVal = document.getElementById('cat_in').value;
@@ -351,8 +422,7 @@
                 document.getElementById('trigger_cat_out').textContent = optionsData.cat_out.find(o => o.val === inVal).label;
                 fetchData(); 
             }
-            adaptParadoxUI();
-            window.scrollTo(0, 0); 
+            adaptParadoxUI(); window.scrollTo(0, 0); 
         }
 
         function convertToHijri(dateStr) {
@@ -369,7 +439,6 @@
             document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Mengambil data...</div>';
             
             const reqData = { action: 'getData', kategori: document.getElementById('cat_out').value, targetSheet: document.getElementById('bulanSheet').value };
-
             fetch(URL_APPS_SCRIPT, { method: 'POST', body: JSON.stringify(reqData), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
             .then(res => res.json())
             .then(result => {
@@ -377,8 +446,7 @@
                     document.getElementById('sumSaldo').textContent = formatRp(result.summary.saldo);
                     document.getElementById('sumMasuk').textContent = formatRp(result.summary.pemasukan);
                     document.getElementById('sumKeluar').textContent = formatRp(result.summary.pengeluaran);
-                    rawHistoryData = result.history;
-                    renderHistory();
+                    rawHistoryData = result.history; renderHistory();
                 } else { document.getElementById('historyList').innerHTML = `<div style="padding:20px; text-align:center; color:red; font-size:14px;">${result.message}</div>`; }
             }).catch(e => { document.getElementById('historyList').innerHTML = '<div style="padding:20px; text-align:center; color:red; font-size:14px;">Gagal terhubung.</div>'; });
         }
@@ -386,32 +454,23 @@
         function renderHistory() {
             const listContainer = document.getElementById('historyList');
             listContainer.innerHTML = '';
-            
             const startInput = document.getElementById('filterMulai').value;
             const endInput = document.getElementById('filterSampai').value;
             const catOut = document.getElementById('cat_out').value;
             
             let filteredData = rawHistoryData;
             
-            // Logika Filter menyesuaikan jenis Kalender Kas
             if((startInput || endInput) && catOut !== 'KAS PW & MOBIL') {
                 let startVal, endVal;
-                
                 if (catOut === 'KAS MOBIL') {
-                    // Kas Mobil pakai Masehi (YYYY-MM-DD to YYYYMMDD)
                     startVal = startInput ? startInput.replace(/-/g, '') : '00000000';
                     endVal = endInput ? endInput.replace(/-/g, '') : '99999999';
-                    
                     filteredData = rawHistoryData.filter(item => {
-                        let parts = item.tanggal.split('/'); // DD/MM/YYYY dari excel
-                        if(parts.length === 3) {
-                            let itemVal = parts[2] + parts[1] + parts[0]; 
-                            return itemVal >= startVal && itemVal <= endVal;
-                        }
+                        let parts = item.tanggal.split('/'); 
+                        if(parts.length === 3) { let itemVal = parts[2] + parts[1] + parts[0]; return itemVal >= startVal && itemVal <= endVal; }
                         return true;
                     });
                 } else {
-                    // Kas PW pakai Hijriyah
                     startVal = startInput ? convertToHijri(startInput).split('/').reverse().join('') : '00000000';
                     endVal = endInput ? convertToHijri(endInput).split('/').reverse().join('') : '99999999';
                     filteredData = rawHistoryData.filter(item => {
@@ -421,11 +480,9 @@
                 }
             }
 
-            // Mencegah error sorting antara Masehi dan Hijriyah
             if (catOut !== 'KAS PW & MOBIL') {
                 filteredData.sort((a, b) => {
-                     let dA = a.tanggal.split('/').reverse().join('');
-                     let dB = b.tanggal.split('/').reverse().join('');
+                     let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
                      return dA.localeCompare(dB);
                 });
             }
@@ -433,14 +490,10 @@
             if(filteredData.length === 0) { listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px;">Tidak ada transaksi</div>'; return; }
 
             filteredData.reverse().forEach(item => {
-                const isMasuk = item.masuk > 0;
-                const amt = formatRp(isMasuk ? item.masuk : item.keluar);
+                const isMasuk = item.masuk > 0; const amt = formatRp(isMasuk ? item.masuk : item.keluar);
                 listContainer.innerHTML += `
                     <div class="history-item">
-                        <div class="history-info">
-                            <p>${toProperCase(item.uraian)}</p>
-                            <small>${item.tanggal}</small>
-                        </div>
+                        <div class="history-info"><p>${toProperCase(item.uraian)}</p><small>${item.tanggal}</small></div>
                         <div class="history-amount ${isMasuk ? 'text-masuk' : 'text-keluar'}">${isMasuk ? '+' : '-'}${amt}</div>
                     </div>`;
             });
@@ -448,13 +501,12 @@
 
         document.getElementById('kasForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const rawDateStr = document.getElementById('tanggal').value; // Format YYYY-MM-DD
+            const rawDateStr = document.getElementById('tanggal').value; 
             if (!rawDateStr) return alert('Pilih tanggal terlebih dahulu.');
 
             const isMobil = document.getElementById('cat_in').value === 'KAS MOBIL';
             let finalTanggalInput = "";
 
-            // Keputusan Input berdasarkan jenis Kas
             if (isMobil) {
                 const dateObj = new Date(rawDateStr);
                 finalTanggalInput = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth()+1).padStart(2, '0')}/${dateObj.getFullYear()}`;
@@ -467,12 +519,9 @@
             const btn = document.getElementById('btnSimpan');
             
             const data = {
-                action: 'insert',
-                kategori: document.getElementById('cat_in').value,
-                tanggal: finalTanggalInput, 
-                uraian: toProperCase(document.getElementById('uraian').value),
-                jenis: document.querySelector('input[name="jenis"]:checked').value,
-                nominal: Number(rawNominal)
+                action: 'insert', kategori: document.getElementById('cat_in').value,
+                tanggal: finalTanggalInput, uraian: toProperCase(document.getElementById('uraian').value),
+                jenis: document.querySelector('input[name="jenis"]:checked').value, nominal: Number(rawNominal)
             };
 
             if (navigator.onLine) {
@@ -482,8 +531,7 @@
                 .then(res => {
                     if (res.status === 'success') {
                         alert('Berhasil disimpan!');
-                        document.getElementById('uraian').value = "";
-                        document.getElementById('nominal').value = "";
+                        document.getElementById('uraian').value = ""; document.getElementById('nominal').value = "";
                         document.querySelector('input[name="jenis"]:checked').checked = false;
                     } else { alert('Error: ' + res.message); }
                 })
@@ -494,8 +542,8 @@
         window.addEventListener('online', () => { document.getElementById('statusJaringan').textContent = 'Online'; document.getElementById('statusJaringan').className = "status-online"; });
         window.addEventListener('offline', () => { document.getElementById('statusJaringan').textContent = 'Offline'; document.getElementById('statusJaringan').className = "status-offline"; });
         
-        // Panggil penyesuaian UI pada awal muat
-        adaptParadoxUI();
+        // Memulai Pengecekan Login Saat Aplikasi Dibuka
+        checkSession();
     </script>
 </body>
 </html>
