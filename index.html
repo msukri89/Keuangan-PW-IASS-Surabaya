@@ -18,13 +18,35 @@
             margin: 0; padding: 0 0 70px 0; -webkit-font-smoothing: antialiased;
         }
 
-        .container { max-width: 450px; margin: auto; padding: 20px 15px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h2 { margin: 5px 0; font-weight: 600; color: var(--iass-green); }
+        .container { max-width: 450px; margin: auto; padding: 0 15px; }
+        
+        /* Pengaturan Header Sticky & Transparan Gradasi */
+        .header { 
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center; 
+            padding: 15px 0 20px 0;
+            margin-bottom: 10px;
+            /* Latar belakang transparan gradasi membaur dengan warna body */
+            background: linear-gradient(to bottom, rgba(242, 242, 247, 0.95) 75%, rgba(242, 242, 247, 0) 100%);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .header-logo {
+            width: 85%;
+            max-width: 280px;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .header h2 { margin: 5px 0 0 0; font-weight: 600; color: var(--iass-green); font-size: 22px; }
 
         #statusJaringan { 
-            font-size: 12px; padding: 6px 12px; border-radius: 20px; font-weight: 600;
-            display: inline-block; margin-bottom: 5px;
+            font-size: 11px; padding: 5px 10px; border-radius: 20px; font-weight: 600;
+            display: inline-block; margin-bottom: 0px;
         }
         .status-online { background-color: #E5F3EB; color: var(--iass-green); }
         .status-offline { background-color: #FCECEB; color: #D73A49; }
@@ -86,6 +108,7 @@
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg);
             display: flex; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
         }
         .nav-item {
             flex: 1; text-align: center; padding: 12px 0; color: var(--text-muted);
@@ -99,9 +122,13 @@
 </head>
 <body>
     <div class="container">
+        
+        <!-- HEADER STICKY -->
         <div class="header">
             <div id="statusJaringan" class="status-online">Online</div>
-            <h2 id="pageTitle">Input Kas Baru</h2>
+            <!-- Pemanggilan file logo.png -->
+            <img src="logo.png" alt="Logo IASS" class="header-logo">
+            <h2 id="pageTitle">Input Kas</h2>
         </div>
 
         <!-- VIEW: INPUT TRANSAKSI -->
@@ -218,9 +245,8 @@
             if(tab === 'input') {
                 document.getElementById('viewInput').classList.add('active');
                 document.querySelectorAll('.nav-item')[0].classList.add('active');
-                document.getElementById('pageTitle').textContent = "Input Kas Baru";
+                document.getElementById('pageTitle').textContent = "Input Kas"; // Berubah sesuai tab
                 
-                // Menyamakan pilihan Kas saat pindah tab (Cegah input ke Kas Gabungan)
                 let currentOut = document.getElementById('cat_out').value;
                 if(currentOut === 'KAS PW & MOBIL') {
                     document.getElementById('cat_in').value = 'KAS PW';
@@ -230,10 +256,13 @@
             } else {
                 document.getElementById('viewRiwayat').classList.add('active');
                 document.querySelectorAll('.nav-item')[1].classList.add('active');
-                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
+                document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan"; // Berubah sesuai tab
                 document.getElementById('cat_out').value = document.getElementById('cat_in').value;
                 fetchData(); 
             }
+            
+            // Gulir otomatis ke paling atas saat pindah tab agar transisi terlihat mulus
+            window.scrollTo(0, 0); 
         }
 
         function convertToHijri(dateStr) {
@@ -300,7 +329,6 @@
                 });
             }
 
-            // Mengurutkan data berdasarkan tanggal (terbaru di atas)
             filteredData.sort((a, b) => {
                  let dA = a.tanggal.split('/').reverse().join('');
                  let dB = b.tanggal.split('/').reverse().join('');
