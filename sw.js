@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kas-iass-v7';
+const CACHE_NAME = 'kas-iass-v8';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
