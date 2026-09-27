@@ -1027,7 +1027,7 @@
         document.getElementById('kasForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const rawDateStr = document.getElementById('tanggal').value; 
-            if (!rawDateStr) return alert('Pilih tanggal terlebih dahulu.');
+            if (!rawDateStr) { showToast('Pilih tanggal terlebih dahulu.', 'error'); return; }
             const isMobil = document.getElementById('cat_in').value === 'KAS MOBIL';
             let finalTanggalInput = "";
             
@@ -1035,7 +1035,7 @@
                 const dateObj = new Date(rawDateStr);
                 finalTanggalInput = `${String(dateObj.getMonth()+1)}/${String(dateObj.getDate())}/${dateObj.getFullYear()}`;
             } else {
-                if (!tanggalHijriyahFinal) return alert('Gagal memformat tanggal Hijriyah.');
+                if (!tanggalHijriyahFinal) { showToast('Gagal memformat tanggal Hijriyah.', 'error'); return; }
                 finalTanggalInput = tanggalHijriyahFinal;
             }
 
@@ -1051,11 +1051,11 @@
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        alert('Berhasil disimpan!');
+                        showToast('✓ Transaksi berhasil disimpan.');
                         document.getElementById('uraian').value = ""; document.getElementById('nominal').value = "";
                         document.querySelector('input[name="jenis"]:checked').checked = false;
                         fetchData();
-                    } else { alert('Error: ' + res.message); }
+                    } else { showToast('Gagal menyimpan: ' + res.message, 'error'); }
                 })
                 .finally(() => { btn.textContent = "Simpan Transaksi"; btn.disabled = false; });
             }
