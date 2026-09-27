@@ -286,6 +286,24 @@
         </div>
     </div>
 
+    <!-- Modal Edit Transaksi -->
+    <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+        <div class="modal-sheet" style="max-height:90vh;">
+            <div class="modal-title">Edit Transaksi</div>
+            <form id="editForm">
+                <input type="hidden" id="editRow"><input type="hidden" id="editSheet"><input type="hidden" id="editKategori">
+                <div class="card">
+                    <div class="form-row"><label>Tanggal</label><div class="form-input-container"><input type="text" id="editTanggal" required placeholder="Tanggal transaksi"><small style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:4px;" id="editTanggalHint"></small></div></div>
+                    <div class="form-row"><label>Uraian</label><div class="form-input-container"><input type="text" id="editUraian" required placeholder="Uraian"></div></div>
+                    <div class="form-row"><label>Jenis</label><div class="form-input-container"><div class="radio-group"><label><input type="radio" name="editJenis" value="masuk" required> Masuk</label><label><input type="radio" name="editJenis" value="keluar"> Keluar</label></div></div></div>
+                    <div class="form-row"><label>Nominal</label><div class="form-input-container"><input type="text" id="editNominal" required inputmode="numeric" placeholder="0"></div></div>
+                </div>
+                <button type="submit" class="btn-primary" id="btnUpdate">Simpan Perubahan</button>
+                <button type="button" class="btn-primary" style="background:#D73A49;margin-top:10px;" id="btnDeleteFromEdit">Hapus Transaksi</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Bottom Sheet -->
     <div class="modal-overlay" id="customModal" onclick="closeModal(event)">
         <div class="modal-sheet">
@@ -506,62 +524,104 @@
             const listContainer = document.getElementById('historyList'); listContainer.innerHTML = '';
             const catOut = document.getElementById('cat_out').value;
             let filteredData = rawHistoryData;
-            
+
             if (catOut === 'KAS MOBIL') {
-                const filterMasehi = document.getElementById('bulanSheet').value; 
-                
+                const filterMasehi = document.getElementById('bulanSheet').value;
                 if (filterMasehi !== 'ALL') {
                     let [fMonth, fYear] = filterMasehi.split('/');
                     filteredData = rawHistoryData.filter(item => {
                         let d = new Date(item.tanggal);
-                        if(isNaN(d)) return false; 
-                        return (d.getMonth() + 1) == parseInt(fMonth) && d.getFullYear() == parseInt(fYear);
+                        if(isNaN(d)) return false;
+                        return (d.getMonth()+1)==parseInt(fMonth) && d.getFullYear()==parseInt(fYear);
                     });
-                } else {
-                    filteredData = rawHistoryData.filter(item => !isNaN(new Date(item.tanggal)));
-                }
-                
-                let mIn = 0; let mOut = 0; let mSaldo = 0;
-                filteredData.forEach(item => { mIn += (Number(item.masuk) || 0); mOut += (Number(item.keluar) || 0); });
-                
-                if (filterMasehi === 'ALL') {
-                    mSaldo = backendSummary.saldo;
-                    if(!mSaldo && filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo;
-                } else {
-                    if(filteredData.length > 0) mSaldo = filteredData[filteredData.length - 1].saldo;
-                }
-                
-                document.getElementById('sumMasuk').textContent = formatRp(mIn);
-                document.getElementById('sumKeluar').textContent = formatRp(mOut);
-                document.getElementById('sumSaldo').textContent = formatRp(mSaldo);
+                } else filteredData = rawHistoryData.filter(item => !isNaN(new Date(item.tanggal)));
+
+                let mIn=0,mOut=0,mSaldo=0;
+                filteredData.forEach(item => { mIn += Number(item.masuk)||0; mOut += Number(item.keluar)||0; });
+                if(filterMasehi==='ALL') { mSaldo=backendSummary.saldo; if(!mSaldo&&filteredData.length) mSaldo=filteredData[filteredData.length-1].saldo; }
+                else if(filteredData.length) mSaldo=filteredData[filteredData.length-1].saldo;
+                document.getElementById('sumMasuk').textContent=formatRp(mIn);
+                document.getElementById('sumKeluar').textContent=formatRp(mOut);
+                document.getElementById('sumSaldo').textContent=formatRp(mSaldo);
             } else {
-                document.getElementById('sumMasuk').textContent = formatRp(backendSummary.pemasukan);
-                document.getElementById('sumKeluar').textContent = formatRp(backendSummary.pengeluaran);
-                document.getElementById('sumSaldo').textContent = formatRp(backendSummary.saldo);
+                document.getElementById('sumMasuk').textContent=formatRp(backendSummary.pemasukan);
+                document.getElementById('sumKeluar').textContent=formatRp(backendSummary.pengeluaran);
+                document.getElementById('sumSaldo').textContent=formatRp(backendSummary.saldo);
             }
 
-            if (catOut !== 'KAS PW & MOBIL') {
-                filteredData.sort((a, b) => {
-                    if (catOut === 'KAS MOBIL') {
-                        return new Date(b.tanggal) - new Date(a.tanggal); 
-                    } else {
-                        let dA = a.tanggal.split('/').reverse().join(''); let dB = b.tanggal.split('/').reverse().join('');
-                        return dA.localeCompare(dB); 
-                    }
+            if(catOut!=='KAS PW & MOBIL') {
+                filteredData.sort((a,b)=>{
+                    if(catOut==='KAS MOBIL') return new Date(b.tanggal)-new Date(a.tanggal);
+                    return a.tanggal.split('/').reverse().join('').localeCompare(b.tanggal.split('/').reverse().join(''));
                 });
             }
 
-            if(filteredData.length === 0) { listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:gray; font-size:14px; background:white; border-radius:12px;">Tidak ada transaksi di bulan ini.</div>'; return; }
+            if(!filteredData.length) {
+                listContainer.innerHTML='<div style="padding:20px;text-align:center;color:gray;font-size:14px;background:white;border-radius:12px;">Tidak ada transaksi di bulan ini.</div>';
+                return;
+            }
 
-            filteredData.reverse().forEach(item => {
-                const isMasuk = item.masuk > 0; const amt = formatRp(isMasuk ? item.masuk : item.keluar);
-                listContainer.innerHTML += `
-                    <div class="history-item">
-                        <div class="history-info"><p>${toProperCase(item.uraian)}</p><small>${item.tanggal}</small></div>
-                        <div class="history-amount ${isMasuk ? 'text-masuk' : 'text-keluar'}">${isMasuk ? '+' : '-'}${amt}</div>
-                    </div>`;
+            const isBendahara=(localStorage.getItem('iassRole')||'').toLowerCase()==='bendahara';
+            filteredData.reverse().forEach(item=>{
+                const isMasuk=Number(item.masuk)>0, amount=isMasuk?item.masuk:item.keluar;
+                const wrapper=document.createElement('div'); wrapper.className='history-item'; wrapper.style.flexDirection='column'; wrapper.style.alignItems='stretch';
+                const row=document.createElement('div'); row.style.cssText='display:flex;justify-content:space-between;align-items:center;width:100%;';
+                const info=document.createElement('div'); info.className='history-info'; info.innerHTML='<p></p><small></small>';
+                info.querySelector('p').textContent=toProperCase(item.uraian); info.querySelector('small').textContent=item.tanggal;
+                const amountEl=document.createElement('div'); amountEl.className='history-amount '+(isMasuk?'text-masuk':'text-keluar'); amountEl.textContent=(isMasuk?'+':'-')+formatRp(amount);
+                row.appendChild(info); row.appendChild(amountEl); wrapper.appendChild(row);
+
+                if(isBendahara && item.row && item.sheetName) {
+                    const actions=document.createElement('div'); actions.style.cssText='display:flex;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border-color);';
+                    const edit=document.createElement('button'); edit.type='button'; edit.textContent='✏️ Edit'; edit.style.cssText='flex:1;border:1px solid var(--iass-green);background:#E5F3EB;color:var(--iass-green);border-radius:9px;padding:8px;font-size:12px;font-weight:600;'; edit.onclick=()=>openEditModal(item);
+                    const del=document.createElement('button'); del.type='button'; del.textContent='🗑️ Hapus'; del.style.cssText='flex:1;border:1px solid #D73A49;background:#FCECEB;color:#D73A49;border-radius:9px;padding:8px;font-size:12px;font-weight:600;'; del.onclick=()=>deleteTransaction(item);
+                    actions.appendChild(edit); actions.appendChild(del); wrapper.appendChild(actions);
+                }
+                listContainer.appendChild(wrapper);
             });
         }
+
+        function openEditModal(item) {
+            document.getElementById('editRow').value=item.row;
+            document.getElementById('editSheet').value=item.sheetName;
+            document.getElementById('editKategori').value=item.isMobil?'KAS MOBIL':'KAS PW';
+            document.getElementById('editTanggal').value=item.tanggal;
+            document.getElementById('editTanggalHint').textContent=item.isMobil?'Format: M/D/YYYY':'Format: DD/MM/YYYY (Hijriyah)';
+            document.getElementById('editUraian').value=item.uraian.replace(/\s*\(Mobil\)\s*$/i,'');
+            document.getElementById('editNominal').value=new Intl.NumberFormat('id-ID').format(Number(item.masuk||item.keluar||0));
+            const jenis=Number(item.masuk)>0?'masuk':'keluar';
+            document.querySelectorAll('input[name="editJenis"]').forEach(r=>r.checked=r.value===jenis);
+            document.getElementById('editModal').style.display='flex';
+        }
+        function closeEditModal(e){if(e.target===document.getElementById('editModal'))document.getElementById('editModal').style.display='none';}
+        function closeEditModalDirect(){document.getElementById('editModal').style.display='none';}
+
+        function deleteTransaction(item){
+            if((localStorage.getItem('iassRole')||'').toLowerCase()!=='bendahara')return;
+            const nominal=Number(item.masuk||item.keluar||0);
+            if(!confirm('Hapus transaksi ini?\n\n'+toProperCase(item.uraian)+'\n'+item.tanggal+'\n'+formatRp(nominal)))return;
+            fetch(URL_APPS_SCRIPT,{method:'POST',body:JSON.stringify({action:'delete',sheetName:item.sheetName,row:Number(item.row)}),headers:{'Content-Type':'text/plain;charset=utf-8'}})
+            .then(res=>res.json()).then(res=>{if(res.status==='success'){alert('Transaksi berhasil dihapus.');fetchData();}else alert('Gagal menghapus: '+res.message);})
+            .catch(()=>alert('Gagal terhubung.'));
+        }
+
+        document.getElementById('editForm').addEventListener('submit',function(e){
+            e.preventDefault();
+            if((localStorage.getItem('iassRole')||'').toLowerCase()!=='bendahara')return;
+            const kategori=document.getElementById('editKategori').value, tanggal=document.getElementById('editTanggal').value.trim(), uraian=toProperCase(document.getElementById('editUraian').value.trim()), jenisEl=document.querySelector('input[name="editJenis"]:checked'), nominal=Number(document.getElementById('editNominal').value.replace(/\./g,''));
+            if(!tanggal||!uraian||!jenisEl||!nominal||nominal<=0)return alert('Lengkapi data transaksi.');
+            const btn=document.getElementById('btnUpdate');btn.textContent='Menyimpan...';btn.disabled=true;
+            fetch(URL_APPS_SCRIPT,{method:'POST',body:JSON.stringify({action:'update',kategori:kategori,sheetName:document.getElementById('editSheet').value,row:Number(document.getElementById('editRow').value),tanggal:tanggal,uraian:uraian,jenis:jenisEl.value,nominal:nominal}),headers:{'Content-Type':'text/plain;charset=utf-8'}})
+            .then(res=>res.json()).then(res=>{if(res.status==='success'){closeEditModalDirect();alert('Transaksi berhasil diperbarui.');fetchData();}else alert('Gagal memperbarui: '+res.message);})
+            .catch(()=>alert('Gagal terhubung.'))
+            .finally(()=>{btn.textContent='Simpan Perubahan';btn.disabled=false;});
+        });
+        document.getElementById('editNominal').addEventListener('input',function(){let val=this.value.replace(/\D/g,'');this.value=val?new Intl.NumberFormat('id-ID').format(val):'';});
+        document.getElementById('btnDeleteFromEdit').addEventListener('click',function(){
+            const item={row:Number(document.getElementById('editRow').value),sheetName:document.getElementById('editSheet').value,uraian:document.getElementById('editUraian').value,tanggal:document.getElementById('editTanggal').value,masuk:document.querySelector('input[name="editJenis"]:checked')?.value==='masuk'?Number(document.getElementById('editNominal').value.replace(/\./g,'')):0,keluar:document.querySelector('input[name="editJenis"]:checked')?.value==='keluar'?Number(document.getElementById('editNominal').value.replace(/\./g,'')):0};
+            closeEditModalDirect();deleteTransaction(item);
+        });
+
 
         document.getElementById('kasForm').addEventListener('submit', function(e) {
             e.preventDefault();
