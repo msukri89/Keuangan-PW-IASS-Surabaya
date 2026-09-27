@@ -117,21 +117,45 @@
             transform: rotate(45deg) translateY(0) scale(0.92);
         }
 
-        .card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .form-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); }
+        .card {
+            background-color: var(--card-bg); border-radius: 16px; overflow: hidden;
+            margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.035);
+        }
+        .form-row {
+            display: flex; align-items: center; padding: 16px 15px;
+            min-height: 58px; border-bottom: 1px solid rgba(198,198,200,0.45);
+            box-sizing: border-box;
+        }
         .form-row:last-child { border-bottom: none; }
-        .form-row label { width: 35%; font-size: 14px; font-weight: 500; }
+        .form-row label { width: 35%; font-size: 14px; font-weight: 500; color: var(--text-main); }
         .form-input-container { width: 65%; display: flex; flex-direction: column; }
         
         input[type="text"], input[type="password"] {
             width: 100%; border: none; font-size: 15px; outline: none; text-align: right; background: transparent; color: var(--text-main);
         }
         
-        .radio-group { display: flex; justify-content: flex-end; gap: 15px; }
-        .radio-group label { display: flex; align-items: center; cursor: pointer; font-size: 14px; }
-        .radio-group input[type="radio"] { margin-right: 5px; accent-color: var(--iass-orange); transform: scale(1.2); }
-
-        button.btn-primary { width: 100%; background-color: var(--iass-orange); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; padding: 14px; cursor: pointer; }
+        .radio-group { display: flex; justify-content: flex-end; gap: 7px; }
+        .radio-group label {
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; font-weight: 500;
+            padding: 8px 12px; border: 1px solid var(--border-color);
+            border-radius: 10px; background: #F7F7F9; color: var(--text-muted);
+            transition: all .18s ease;
+        }
+        .radio-group input[type="radio"] {
+            appearance: none; width: 0; height: 0; margin: 0;
+        }
+        .radio-group label:has(input:checked) {
+            background: #E5F3EB; border-color: var(--iass-green);
+            color: var(--iass-green); font-weight: 600;
+        }
+        button.btn-primary {
+            width: 100%; background-color: var(--iass-orange); color: white;
+            border: none; border-radius: 14px; font-weight: 600;
+            font-size: 16px; padding: 14px; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(242,145,18,0.14);
+        }
+        button.btn-primary:active { transform: scale(0.99); }
         button.btn-primary:disabled { opacity: 0.6; }
 
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
@@ -277,12 +301,46 @@
         .modal-option:last-child { border-bottom: none; }
         .modal-option:active { background-color: var(--bg-color); }
         
-        .flatpickr-calendar { font-family: inherit !important; border-radius: 12px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; border: none !important; }
-        .flatpickr-day.selected { background: var(--iass-orange) !important; border-color: var(--iass-orange) !important; }
+        .calendar-backdrop {
+            position: fixed; inset: 0; z-index: 2998;
+            display: none; background: rgba(15,18,16,0.56);
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+        }
+        .calendar-backdrop.show { display: block; }
+        .flatpickr-calendar {
+            font-family: inherit !important;
+            border-radius: 20px !important;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.22) !important;
+            border: none !important;
+            width: calc(100vw - 40px) !important;
+            max-width: 360px !important;
+            padding: 8px !important;
+            z-index: 2999 !important;
+        }
+        .flatpickr-calendar.open {
+            position: fixed !important;
+            top: 50% !important; left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            margin: 0 !important;
+        }
+        .flatpickr-day.selected {
+            background: var(--iass-green) !important;
+            border-color: var(--iass-green) !important;
+        }
+        .flatpickr-day.today:not(.selected) {
+            border-color: var(--iass-green) !important;
+        }
+        .flatpickr-current-month { font-size: 17px !important; }
+        .flatpickr-weekdays { margin-top: 4px; }
+        .flatpickr-weekday { color: var(--text-muted) !important; }
+        .flatpickr-months .flatpickr-month { height: 42px !important; }
+        .flatpickr-prev-month, .flatpickr-next-month { top: 10px !important; }
+        .flatpickr-day { border-radius: 50% !important; }
     </style>
 </head>
 <body>
     <div id="statusJaringan" class="status-online">Online</div>
+    <div id="calendarBackdrop" class="calendar-backdrop" onclick="dateInput.close()"></div>
     <button id="btnLogout" onclick="logout()">Keluar</button>
 
     <!-- VIEW: LOGIN (Tampilan overlay hijau penuh) -->
@@ -515,9 +573,15 @@
         function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); setBulanHijriyahOtomatis();
         checkSession(); } }
 
-        const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
+        const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true", appendTo: document.body };
         const dateInput = flatpickr("#tanggal", {
             ...flatpickrConfig,
+            onOpen: function() {
+                document.getElementById('calendarBackdrop').classList.add('show');
+            },
+            onClose: function() {
+                document.getElementById('calendarBackdrop').classList.remove('show');
+            },
             onChange: function(selectedDates, dateStr) {
                 tanggalHijriyahFinal = dateStr ? convertToHijri(dateStr) : "";
                 if(document.getElementById('cat_in').value === 'KAS PW') { document.getElementById('hijriInfo').textContent = tanggalHijriyahFinal ? `Hijriyah: ${tanggalHijriyahFinal}` : ""; }
