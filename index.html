@@ -609,7 +609,7 @@
 
         function doLogin() {
             const user = document.getElementById('loginUser').value; const pass = document.getElementById('loginPass').value;
-            if(!user || !pass) return alert("Isi Username dan Password!");
+            if(!user || !pass) { showToast("Isi Username dan Password!", "error"); return; }
             const btn = document.getElementById('btnProsesLogin'); btn.textContent = "Mengecek Akun..."; btn.disabled = true;
 
             fetch(URL_APPS_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'login', username: user, password: pass }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } })
@@ -618,9 +618,9 @@
                 if (res.status === 'success') {
                     localStorage.setItem('iassRole', res.role); localStorage.setItem('iassNama', res.nama);
                     document.getElementById('loginUser').value = ""; document.getElementById('loginPass').value = ""; checkSession();
-                } else { alert(res.message); }
+                } else { showToast(res.message || "Username atau Password salah!", "error"); }
             })
-            .catch(() => alert('Gagal terhubung. Pastikan ada sinyal internet.'))
+            .catch(() => showToast('Gagal terhubung. Pastikan ada sinyal internet.', 'error'))
             .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
         }
         
@@ -1019,7 +1019,7 @@
             e.preventDefault();
             if((localStorage.getItem('iassRole')||'').toLowerCase()!=='bendahara')return;
             const kategori=document.getElementById('editKategori').value, tanggal=document.getElementById('editTanggal').value.trim(), uraian=toProperCase(document.getElementById('editUraian').value.trim()), jenisEl=document.querySelector('input[name="editJenis"]:checked'), nominal=Number(document.getElementById('editNominal').value.replace(/\./g,''));
-            if(!tanggal||!uraian||!jenisEl||!nominal||nominal<=0)return alert('Lengkapi data transaksi.');
+            if(!tanggal||!uraian||!jenisEl||!nominal||nominal<=0){showToast('Lengkapi data transaksi.', 'error');return;}
             const btn=document.getElementById('btnUpdate');btn.textContent='Menyimpan...';btn.disabled=true;
             fetch(URL_APPS_SCRIPT,{method:'POST',body:JSON.stringify({action:'update',kategori:kategori,sheetName:document.getElementById('editSheet').value,row:Number(document.getElementById('editRow').value),tanggal:tanggal,uraian:uraian,jenis:jenisEl.value,nominal:nominal}),headers:{'Content-Type':'text/plain;charset=utf-8'}})
             .then(res=>res.json()).then(res=>{
