@@ -136,6 +136,28 @@
         .history-info small { color: var(--text-muted); font-size: 12px;}
         .history-amount { font-weight: 600; font-size: 15px;}
 
+        .history-edit-btn {
+            width: 32px; height: 32px; margin-left: 8px; flex: 0 0 32px;
+            border: 1px solid var(--iass-green); background: #E5F3EB;
+            color: var(--iass-green); border-radius: 9px; font-size: 15px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; padding: 0;
+        }
+        .history-edit-btn:active { transform: scale(0.94); }
+
+        .edit-modal-header {
+            position: relative; display: flex; align-items: center;
+            justify-content: center; min-height: 34px; margin-bottom: 12px;
+        }
+        .edit-modal-header .modal-title { margin: 0; }
+        .modal-delete-btn {
+            position: absolute; right: 0; top: 0; width: 34px; height: 34px;
+            border: 1px solid #D73A49; background: #FCECEB; color: #D73A49;
+            border-radius: 9px; display: inline-flex; align-items: center;
+            justify-content: center; font-size: 16px; cursor: pointer; padding: 0;
+        }
+        .modal-delete-btn:active { transform: scale(0.94); }
+
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg);
             display: flex; border-top: 1px solid var(--border-color); padding-bottom: env(safe-area-inset-bottom); z-index: 100;
@@ -289,7 +311,10 @@
     <!-- Modal Edit Transaksi -->
     <div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
         <div class="modal-sheet" style="max-height:90vh;">
-            <div class="modal-title">Edit Transaksi</div>
+            <div class="edit-modal-header">
+                <div class="modal-title">Detail Transaksi</div>
+                <button type="button" class="modal-delete-btn" id="btnDeleteFromEdit" aria-label="Hapus transaksi" title="Hapus transaksi">🗑️</button>
+            </div>
             <form id="editForm">
                 <input type="hidden" id="editRow"><input type="hidden" id="editSheet"><input type="hidden" id="editKategori">
                 <div class="card">
@@ -299,7 +324,6 @@
                     <div class="form-row"><label>Nominal</label><div class="form-input-container"><input type="text" id="editNominal" required inputmode="numeric" placeholder="0"></div></div>
                 </div>
                 <button type="submit" class="btn-primary" id="btnUpdate">Simpan Perubahan</button>
-                <button type="button" class="btn-primary" style="background:#D73A49;margin-top:10px;" id="btnDeleteFromEdit">Hapus Transaksi</button>
             </form>
         </div>
     </div>
@@ -569,14 +593,25 @@
                 const info=document.createElement('div'); info.className='history-info'; info.innerHTML='<p></p><small></small>';
                 info.querySelector('p').textContent=toProperCase(item.uraian); info.querySelector('small').textContent=item.tanggal;
                 const amountEl=document.createElement('div'); amountEl.className='history-amount '+(isMasuk?'text-masuk':'text-keluar'); amountEl.textContent=(isMasuk?'+':'-')+formatRp(amount);
-                row.appendChild(info); row.appendChild(amountEl); wrapper.appendChild(row);
+
+                const rightSide=document.createElement('div');
+                rightSide.style.cssText='display:flex;align-items:center;justify-content:flex-end;flex-shrink:0;';
+                rightSide.appendChild(amountEl);
 
                 if(isBendahara && item.row && item.sheetName) {
-                    const actions=document.createElement('div'); actions.style.cssText='display:flex;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border-color);';
-                    const edit=document.createElement('button'); edit.type='button'; edit.textContent='✏️ Edit'; edit.style.cssText='flex:1;border:1px solid var(--iass-green);background:#E5F3EB;color:var(--iass-green);border-radius:9px;padding:8px;font-size:12px;font-weight:600;'; edit.onclick=()=>openEditModal(item);
-                    const del=document.createElement('button'); del.type='button'; del.textContent='🗑️ Hapus'; del.style.cssText='flex:1;border:1px solid #D73A49;background:#FCECEB;color:#D73A49;border-radius:9px;padding:8px;font-size:12px;font-weight:600;'; del.onclick=()=>deleteTransaction(item);
-                    actions.appendChild(edit); actions.appendChild(del); wrapper.appendChild(actions);
+                    const edit=document.createElement('button');
+                    edit.type='button';
+                    edit.className='history-edit-btn';
+                    edit.textContent='✏️';
+                    edit.title='Edit transaksi';
+                    edit.setAttribute('aria-label','Edit transaksi');
+                    edit.onclick=()=>openEditModal(item);
+                    rightSide.appendChild(edit);
                 }
+
+                row.appendChild(info);
+                row.appendChild(rightSide);
+                wrapper.appendChild(row);
                 listContainer.appendChild(wrapper);
             });
         }
