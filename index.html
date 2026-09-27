@@ -896,28 +896,72 @@
             }
 
             // Urutkan transaksi berdasarkan tanggal terbaru -> terlama.
-            // KAS PW memakai DD/MM/YYYY Hijriyah, sedangkan KAS MOBIL memakai M/D/YYYY Masehi.
-            if(catOut !== 'KAS PW & MOBIL') {
-                filteredData.sort((a, b) => {
-                    if(catOut === 'KAS MOBIL') {
-                        const parseMasehi = value => {
-                            const parts = String(value || '').split('/');
-                            if(parts.length !== 3) return 0;
-                            const m = Number(parts[0]), d = Number(parts[1]), y = Number(parts[2]);
-                            return (y > 0 && m > 0 && d > 0) ? new Date(y, m - 1, d).getTime() : 0;
-                        };
-                        return parseMasehi(b.tanggal) - parseMasehi(a.tanggal);
+            // KAS PW menyimpan DD/MM/YYYY Hijriyah, sedangkan KAS MOBIL menyimpan M/D/YYYY Masehi.
+            // Untuk tampilan GABUNGAN, kedua format dikonversi ke tanggal Masehi
+            // agar benar-benar bisa dibandingkan secara kronologis.
+            const hijriToGregorianTimestamp = (() => {
+                const cache = {};
+                return function(value) {
+                    const key = String(value || '');
+                    if (cache[key] !== undefined) return cache[key];
+
+                    const parts = key.split('/');
+                    if(parts.length !== 3) return cache[key] = 0;
+
+                    const d = Number(parts[0]), m = Number(parts[1]), y = Number(parts[2]);
+                    if(!d || !m || !y) return cache[key] = 0;
+
+                    // Perkiraan awal, lalu cari tanggal Umm al-Qura yang tepat
+                    // di sekitar tanggal tersebut menggunakan Intl.
+                    const approx = new Date(Date.UTC(
+                        Math.round(622 + (y - 1) * 0.970224 * 365.2425),
+                        0, 1
+                    ));
+                    const approxDays = Math.round((m - 1) * 29.53 + (d - 1));
+                    approx.setUTCDate(approx.getUTCDate() + approxDays);
+
+                    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
+                        day: 'numeric', month: 'numeric', year: 'numeric',
+                        timeZone: 'UTC'
+                    });
+
+                    const target = String(d) + '/' + String(m) + '/' + String(y);
+                    for(let offset = -15; offset <= 15; offset++) {
+                        const candidate = new Date(approx.getTime() + offset * 86400000);
+                        const partsOut = formatter.formatToParts(candidate);
+                        const cd = Number(partsOut.find(p => p.type === 'day')?.value);
+                        const cm = Number(partsOut.find(p => p.type === 'month')?.value);
+                        const cy = Number(partsOut.find(p => p.type === 'year')?.value);
+                        if((cd + '/' + cm + '/' + cy) === target) {
+                            return cache[key] = candidate.getTime();
+                        }
                     }
 
-                    const parseHijri = value => {
-                        const parts = String(value || '').split('/');
-                        if(parts.length !== 3) return 0;
-                        const d = Number(parts[0]), m = Number(parts[1]), y = Number(parts[2]);
-                        return (y * 10000) + (m * 100) + d;
-                    };
-                    return parseHijri(b.tanggal) - parseHijri(a.tanggal);
-                });
-            }
+                    return cache[key] = approx.getTime();
+                };
+            })();
+
+            const getTransactionTimestamp = (value) => {
+                const parts = String(value || '').split('/');
+                if(parts.length !== 3) return 0;
+
+                const a = Number(parts[0]);
+                const b = Number(parts[1]);
+                const y = Number(parts[2]);
+
+                // Tahun 4 digit = tanggal Masehi (M/D/YYYY).
+                if(y >= 1900) {
+                    if(a > 0 && b > 0 && y > 0) return new Date(y, a - 1, b).getTime();
+                    return 0;
+                }
+
+                // Tahun 14xx = tanggal Hijriyah (DD/MM/YYYY).
+                return hijriToGregorianTimestamp(value);
+            };
+
+            filteredData.sort((a, b) => {
+                return getTransactionTimestamp(b.tanggal) - getTransactionTimestamp(a.tanggal);
+            });
 
             if(!filteredData.length) {
                 listContainer.innerHTML='<div style="padding:20px;text-align:center;color:gray;font-size:14px;background:white;border-radius:12px;">Tidak ada transaksi di bulan ini.</div>';
