@@ -243,8 +243,8 @@
 
             <!-- Dropdown Bulan Dinamis -->
             <div id="wrapper_bulanSheet">
-                <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan')">Bulan 2 (Shafar 1448)</div>
-                <input type="hidden" id="bulanSheet" value="2/48">
+                <div id="trigger_bulanSheet" class="custom-select-trigger" onclick="openModal('bulanSheet', 'Pilih Bulan')">Memuat bulan...</div>
+                <input type="hidden" id="bulanSheet" value="">
             </div>
 
             <div class="summary-grid">
@@ -341,7 +341,8 @@
             .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
         }
         
-        function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); checkSession(); } }
+        function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); setBulanHijriyahOtomatis();
+        checkSession(); } }
 
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true" };
         const dateInput = flatpickr("#tanggal", {
@@ -373,6 +374,32 @@
             { val: '10/48', label: 'Bulan 10 (Syawal 1448)' }, { val: '11/48', label: 'Bulan 11 (Dzul Qo\'dah 1448)' }, { val: '12/48', label: 'Bulan 12 (Dzul Hijjah 1448)' }
         ];
 
+        function setBulanHijriyahOtomatis() {
+            try {
+                const today = new Date();
+                const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { month: 'numeric', year: 'numeric' });
+                const parts = formatter.formatToParts(today);
+                const hijriMonth = Number(parts.find(p => p.type === 'month')?.value);
+                const hijriYear = Number(parts.find(p => p.type === 'year')?.value);
+                if (!hijriMonth || !hijriYear) return;
+
+                const targetValue = hijriMonth + '/' + String(hijriYear).slice(-2);
+                const found = bulanHijriyah.find(item => item.val === targetValue);
+
+                if (found) {
+                    document.getElementById('bulanSheet').value = found.val;
+                    document.getElementById('trigger_bulanSheet').textContent = found.label;
+                } else {
+                    document.getElementById('bulanSheet').value = targetValue;
+                    document.getElementById('trigger_bulanSheet').textContent = 'Bulan Hijriyah saat ini';
+                }
+            } catch (err) {
+                console.warn('Gagal menentukan bulan Hijriyah otomatis:', err);
+                document.getElementById('bulanSheet').value = bulanHijriyah[0].val;
+                document.getElementById('trigger_bulanSheet').textContent = bulanHijriyah[0].label;
+            }
+        }
+
         const bulanMasehi = [
             { val: 'ALL', label: 'Tampilkan Semua' },
             { val: '5/2026', label: 'Mei 2026' }, { val: '6/2026', label: 'Juni 2026' }, { val: '7/2026', label: 'Juli 2026' },
@@ -387,6 +414,10 @@
         };
 
         function adaptParadoxUI() {
+            // Untuk KAS PW, selalu gunakan bulan Hijriyah yang sedang berjalan
+            if (document.getElementById('cat_out').value === 'KAS PW' && !document.getElementById('bulanSheet').value) {
+                setBulanHijriyahOtomatis();
+            }
             if(document.getElementById('cat_in').value === 'KAS MOBIL') { document.getElementById('hijriInfo').style.display = 'none'; } 
             else { document.getElementById('hijriInfo').style.display = 'block'; if(tanggalHijriyahFinal) document.getElementById('hijriInfo').textContent = `Hijriyah: ${tanggalHijriyahFinal}`; }
 
@@ -557,6 +588,7 @@
                         alert('Berhasil disimpan!');
                         document.getElementById('uraian').value = ""; document.getElementById('nominal').value = "";
                         document.querySelector('input[name="jenis"]:checked').checked = false;
+                        fetchData();
                     } else { alert('Error: ' + res.message); }
                 })
                 .finally(() => { btn.textContent = "Simpan Transaksi"; btn.disabled = false; });
