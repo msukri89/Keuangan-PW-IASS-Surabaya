@@ -519,6 +519,25 @@
 
     <div class="app-toast" id="appToast"></div>
 
+    <!-- Modal Konfirmasi Keluar -->
+    <div class="confirm-overlay" id="logoutConfirmModal" onclick="closeLogoutConfirm(event)">
+        <div class="confirm-card">
+            <div class="confirm-icon" style="background:#FFF1E5;color:var(--iass-orange);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10 17l5-5-5-5"></path>
+                    <path d="M15 12H3"></path>
+                    <path d="M21 19V5a2 2 0 0 0-2-2h-6"></path>
+                </svg>
+            </div>
+            <h3 class="confirm-title">Keluar dari Aplikasi?</h3>
+            <div class="confirm-message">Anda akan keluar dari sesi Bendahara.</div>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-cancel" onclick="closeLogoutConfirm()">Batal</button>
+                <button type="button" class="confirm-danger" id="btnConfirmLogout" style="background:var(--iass-orange);">Keluar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Hapus -->
     <div class="confirm-overlay" id="confirmDeleteModal" onclick="closeConfirmDelete(event)">
         <div class="confirm-card">
@@ -605,8 +624,27 @@
             .finally(() => { btn.textContent = "Masuk Aplikasi"; btn.disabled = false; });
         }
         
-        function logout() { if(confirm("Yakin ingin keluar?")) { localStorage.removeItem('iassRole'); localStorage.removeItem('iassNama'); setBulanHijriyahOtomatis();
-        checkSession(); } }
+        function openLogoutConfirm() {
+            document.getElementById('logoutConfirmModal').style.display = 'flex';
+        }
+
+        function closeLogoutConfirm(e) {
+            const modal = document.getElementById('logoutConfirmModal');
+            if(e && e.target !== modal) return;
+            modal.style.display = 'none';
+        }
+
+        document.getElementById('btnConfirmLogout').addEventListener('click', function() {
+            document.getElementById('logoutConfirmModal').style.display = 'none';
+            localStorage.removeItem('iassRole');
+            localStorage.removeItem('iassNama');
+            setBulanHijriyahOtomatis();
+            checkSession();
+        });
+
+        function logout() {
+            openLogoutConfirm();
+        }
 
         const flatpickrConfig = { locale: "id", dateFormat: "Y-m-d", altInput: true, altFormat: "j F Y", disableMobile: "true", appendTo: document.body };
         const dateInput = flatpickr("#tanggal", {
