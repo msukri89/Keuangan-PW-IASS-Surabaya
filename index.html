@@ -541,8 +541,8 @@
                 document.getElementById('welcomeMsg').style.display = 'block';
                 document.getElementById('welcomeMsg').textContent = `Halo, ${toProperCase(nama)} (${role})`;
                 
-                if (role.toLowerCase() === 'bendahara') { document.getElementById('navInputBtn').style.display = 'flex'; switchTab('input'); } 
-                else { document.getElementById('navInputBtn').style.display = 'none'; switchTab('riwayat'); }
+                if (role.toLowerCase() === 'bendahara') { document.getElementById('navInputBtn').style.display = 'flex'; switchTab('input'); initBackGuard(); }
+                else { document.getElementById('navInputBtn').style.display = 'none'; switchTab('riwayat'); initBackGuard(); }
             } else {
                 // Tampilkan area login overlay
                 document.getElementById('viewLogin').classList.add('active');
@@ -699,7 +699,60 @@
         }
         function closeModal(e) { if(e.target === document.getElementById('customModal')) document.getElementById('customModal').style.display = 'none'; }
 
-        function switchTab(tab) {
+        // Tombol Back Android/browser: jangan langsung keluar dari aplikasi.
+        // Dari Input -> kembali ke Riwayat. Dari Riwayat -> tetap di aplikasi.
+        let backGuardReady = false;
+        function initBackGuard() {
+            if(backGuardReady) return;
+            backGuardReady = true;
+            history.pushState({ iassAppGuard: true }, '', location.href);
+            window.addEventListener('popstate', function() {
+                const role = (localStorage.getItem('iassRole') || '').toLowerCase();
+                if(!role) {
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    return;
+                }
+
+                const calendar = document.getElementById('calendarBackdrop');
+                if(calendar && calendar.classList.contains('show')) {
+                    if(typeof dateInput !== 'undefined') dateInput.close();
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    return;
+                }
+
+                const confirmDelete = document.getElementById('confirmDeleteModal');
+                if(confirmDelete && confirmDelete.style.display === 'flex') {
+                    closeConfirmDelete();
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    return;
+                }
+
+                const customModal = document.getElementById('customModal');
+                if(customModal && customModal.style.display === 'flex') {
+                    customModal.style.display = 'none';
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    return;
+                }
+
+                const editModal = document.getElementById('editModal');
+                if(editModal && editModal.style.display === 'flex') {
+                    if(typeof closeEditModalDirect === 'function') closeEditModalDirect();
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    return;
+                }
+
+                const inputActive = document.getElementById('viewInput').classList.contains('active');
+                if(inputActive) {
+                    switchTab('riwayat', true);
+                    showToast('Kembali ke Riwayat');
+                } else {
+                    history.pushState({ iassAppGuard: true }, '', location.href);
+                    showToast('Gunakan tombol Keluar untuk keluar dari aplikasi.');
+                }
+            });
+        }
+
+        function switchTab(tab, fromBack = false) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
@@ -720,7 +773,10 @@
             }
             adaptParadoxUI();
             if (tab === 'riwayat') fetchData();
-            window.scrollTo(0, 0); 
+            window.scrollTo(0, 0);
+            if(!fromBack && backGuardReady) {
+                history.pushState({ iassAppGuard: true, tab: tab }, '', location.href);
+            }
         }
 
         function fetchData() {
