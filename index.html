@@ -895,10 +895,27 @@
                 document.getElementById('sumSaldo').textContent=formatRp(backendSummary.saldo);
             }
 
-            if(catOut!=='KAS PW & MOBIL') {
-                filteredData.sort((a,b)=>{
-                    if(catOut==='KAS MOBIL') return new Date(b.tanggal)-new Date(a.tanggal);
-                    return a.tanggal.split('/').reverse().join('').localeCompare(b.tanggal.split('/').reverse().join(''));
+            // Urutkan transaksi berdasarkan tanggal terbaru -> terlama.
+            // KAS PW memakai DD/MM/YYYY Hijriyah, sedangkan KAS MOBIL memakai M/D/YYYY Masehi.
+            if(catOut !== 'KAS PW & MOBIL') {
+                filteredData.sort((a, b) => {
+                    if(catOut === 'KAS MOBIL') {
+                        const parseMasehi = value => {
+                            const parts = String(value || '').split('/');
+                            if(parts.length !== 3) return 0;
+                            const m = Number(parts[0]), d = Number(parts[1]), y = Number(parts[2]);
+                            return (y > 0 && m > 0 && d > 0) ? new Date(y, m - 1, d).getTime() : 0;
+                        };
+                        return parseMasehi(b.tanggal) - parseMasehi(a.tanggal);
+                    }
+
+                    const parseHijri = value => {
+                        const parts = String(value || '').split('/');
+                        if(parts.length !== 3) return 0;
+                        const d = Number(parts[0]), m = Number(parts[1]), y = Number(parts[2]);
+                        return (y * 10000) + (m * 100) + d;
+                    };
+                    return parseHijri(b.tanggal) - parseHijri(a.tanggal);
                 });
             }
 
@@ -908,7 +925,7 @@
             }
 
             const isBendahara=(localStorage.getItem('iassRole')||'').toLowerCase()==='bendahara';
-            filteredData.reverse().forEach(item=>{
+            filteredData.forEach(item=>{
                 const isMasuk=Number(item.masuk)>0, amount=isMasuk?item.masuk:item.keluar;
                 const wrapper=document.createElement('div'); wrapper.className='history-item'; wrapper.style.flexDirection='column'; wrapper.style.alignItems='stretch';
                 const row=document.createElement('div'); row.style.cssText='display:flex;justify-content:space-between;align-items:center;width:100%;';
