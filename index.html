@@ -913,10 +913,8 @@
 
                     // Perkiraan awal, lalu cari tanggal Umm al-Qura yang tepat
                     // di sekitar tanggal tersebut menggunakan Intl.
-                    const approx = new Date(Date.UTC(
-                        Math.round(622 + (y - 1) * 0.970224 * 365.2425),
-                        0, 1
-                    ));
+                    const approxYear = Math.floor((y - 1) * 0.970224 + 622);
+                    const approx = new Date(Date.UTC(approxYear, 0, 1));
                     const approxDays = Math.round((m - 1) * 29.53 + (d - 1));
                     approx.setUTCDate(approx.getUTCDate() + approxDays);
 
