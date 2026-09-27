@@ -433,7 +433,12 @@
                     triggerBulan.textContent = 'Tampilkan Semua';
                 }
             } else if (catOut === 'KAS PW & MOBIL') {
-                wrapperBulan.style.display = 'none'; 
+                // Kas gabungan membutuhkan sheet PW bulan berjalan + Kas Armada.
+                // Pastikan targetSheet tidak masih menunjuk ke "ALL" dari Kas Armada.
+                wrapperBulan.style.display = 'none';
+                if (document.getElementById('bulanSheet').value.includes('/20') || document.getElementById('bulanSheet').value === 'ALL' || !document.getElementById('bulanSheet').value) {
+                    setBulanHijriyahOtomatis();
+                }
             } else {
                 wrapperBulan.style.display = 'block';
                 optionsData['bulanSheet'] = bulanHijriyah;
