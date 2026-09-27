@@ -438,8 +438,7 @@
                 wrapperBulan.style.display = 'block';
                 optionsData['bulanSheet'] = bulanHijriyah;
                 if(document.getElementById('bulanSheet').value.includes('/20') || document.getElementById('bulanSheet').value === 'ALL') {
-                    document.getElementById('bulanSheet').value = '2/48';
-                    triggerBulan.textContent = 'Bulan 2 (Shafar 1448)';
+                    setBulanHijriyahOtomatis();
                 }
             }
         }
