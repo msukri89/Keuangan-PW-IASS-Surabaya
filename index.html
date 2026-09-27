@@ -477,9 +477,10 @@
                 document.getElementById('pageTitle').textContent = "Riwayat & Ringkasan";
                 let inVal = document.getElementById('cat_in').value; document.getElementById('cat_out').value = inVal;
                 document.getElementById('trigger_cat_out').textContent = optionsData.cat_out.find(o => o.val === inVal).label;
-                fetchData(); 
             }
-            adaptParadoxUI(); window.scrollTo(0, 0); 
+            adaptParadoxUI();
+            if (tab === 'riwayat') fetchData();
+            window.scrollTo(0, 0); 
         }
 
         function fetchData() {
