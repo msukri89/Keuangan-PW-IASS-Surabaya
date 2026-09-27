@@ -104,7 +104,18 @@
             justify-content: space-between; align-items: center; box-sizing: border-box;
             box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
-        .custom-select-trigger::after { content: "⌄"; font-size: 17px; line-height: 1; color: var(--text-muted); margin-left: 10px; }
+        .custom-select-trigger::after {
+            content: "";
+            width: 8px; height: 8px;
+            border-right: 1.8px solid var(--text-muted);
+            border-bottom: 1.8px solid var(--text-muted);
+            transform: rotate(45deg) translateY(-2px);
+            margin-left: 12px; flex: 0 0 8px;
+            transition: transform 0.2s ease;
+        }
+        .custom-select-trigger:active::after {
+            transform: rotate(45deg) translateY(0) scale(0.92);
+        }
 
         .card { background-color: var(--card-bg); border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .form-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); }
@@ -179,6 +190,53 @@
         .modal-delete-btn svg { width: 18px; height: 18px; stroke: currentColor; }
 
         .modal-delete-btn:active { transform: scale(0.94); }
+
+        .confirm-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            padding: 22px; box-sizing: border-box;
+            background: rgba(0,0,0,0.42);
+            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+        }
+        .confirm-card {
+            width: 100%; max-width: 360px; box-sizing: border-box;
+            background: var(--card-bg); border-radius: 22px;
+            padding: 24px 22px 18px;
+            box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+            animation: confirmPop 0.18s ease-out;
+        }
+        @keyframes confirmPop {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .confirm-icon {
+            width: 44px; height: 44px; margin: 0 auto 13px;
+            border-radius: 50%; background: #FCECEB; color: #D73A49;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .confirm-icon svg { width: 21px; height: 21px; stroke: currentColor; }
+        .confirm-title {
+            margin: 0; text-align: center; font-size: 18px;
+            font-weight: 650; color: var(--text-main);
+        }
+        .confirm-message {
+            margin: 9px 0 20px; text-align: center;
+            color: var(--text-muted); font-size: 13px; line-height: 1.5;
+            white-space: pre-line;
+        }
+        .confirm-actions { display: flex; gap: 9px; }
+        .confirm-actions button {
+            flex: 1; border-radius: 12px; padding: 12px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .confirm-cancel {
+            border: 1px solid var(--border-color);
+            background: #F7F7F9; color: var(--text-main);
+        }
+        .confirm-danger {
+            border: none; background: #D73A49; color: white;
+        }
+        .confirm-actions button:active { transform: scale(0.98); }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg);
@@ -347,6 +405,27 @@
                 </div>
                 <button type="submit" class="btn-primary" id="btnUpdate">Simpan Perubahan</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div class="confirm-overlay" id="confirmDeleteModal" onclick="closeConfirmDelete(event)">
+        <div class="confirm-card">
+            <div class="confirm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4h8v2"></path>
+                    <path d="M19 6l-1 14H6L5 6"></path>
+                    <path d="M10 10v6"></path>
+                    <path d="M14 10v6"></path>
+                </svg>
+            </div>
+            <h3 class="confirm-title">Hapus Transaksi?</h3>
+            <div class="confirm-message" id="confirmDeleteMessage"></div>
+            <div class="confirm-actions">
+                <button type="button" class="confirm-cancel" onclick="closeConfirmDelete()">Batal</button>
+                <button type="button" class="confirm-danger" id="btnConfirmDelete">Hapus</button>
+            </div>
         </div>
     </div>
 
@@ -653,14 +732,50 @@
         function closeEditModal(e){if(e.target===document.getElementById('editModal'))document.getElementById('editModal').style.display='none';}
         function closeEditModalDirect(){document.getElementById('editModal').style.display='none';}
 
-        function deleteTransaction(item){
-            if((localStorage.getItem('iassRole')||'').toLowerCase()!=='bendahara')return;
-            const nominal=Number(item.masuk||item.keluar||0);
-            if(!confirm('Hapus transaksi ini?\n\n'+toProperCase(item.uraian)+'\n'+item.tanggal+'\n'+formatRp(nominal)))return;
-            fetch(URL_APPS_SCRIPT,{method:'POST',body:JSON.stringify({action:'delete',sheetName:item.sheetName,row:Number(item.row)}),headers:{'Content-Type':'text/plain;charset=utf-8'}})
-            .then(res=>res.json()).then(res=>{if(res.status==='success'){alert('Transaksi berhasil dihapus.');fetchData();}else alert('Gagal menghapus: '+res.message);})
-            .catch(()=>alert('Gagal terhubung.'));
+        let pendingDeleteItem = null;
+
+        function openDeleteConfirm(item) {
+            if((localStorage.getItem('iassRole')||'').toLowerCase()!=='bendahara') return;
+            pendingDeleteItem = item;
+            const nominal = Number(item.masuk || item.keluar || 0);
+            document.getElementById('confirmDeleteMessage').textContent =
+                toProperCase(item.uraian) + '\n' + item.tanggal + '\n' + formatRp(nominal);
+            document.getElementById('confirmDeleteModal').style.display = 'flex';
         }
+
+        function closeConfirmDelete(e) {
+            const modal = document.getElementById('confirmDeleteModal');
+            if(e && e.target !== modal) return;
+            modal.style.display = 'none';
+            pendingDeleteItem = null;
+        }
+
+        function deleteTransaction(item) {
+            openDeleteConfirm(item);
+        }
+
+        document.getElementById('btnConfirmDelete').addEventListener('click', function() {
+            if(!pendingDeleteItem) return;
+            const item = pendingDeleteItem;
+            pendingDeleteItem = null;
+            document.getElementById('confirmDeleteModal').style.display = 'none';
+
+            fetch(URL_APPS_SCRIPT,{
+                method:'POST',
+                body:JSON.stringify({action:'delete',sheetName:item.sheetName,row:Number(item.row)}),
+                headers:{'Content-Type':'text/plain;charset=utf-8'}
+            })
+            .then(res=>res.json())
+            .then(res=>{
+                if(res.status==='success'){
+                    alert('Transaksi berhasil dihapus.');
+                    fetchData();
+                }else{
+                    alert('Gagal menghapus: '+res.message);
+                }
+            })
+            .catch(()=>alert('Gagal terhubung.'));
+        });
 
         document.getElementById('editForm').addEventListener('submit',function(e){
             e.preventDefault();
@@ -676,7 +791,7 @@
         document.getElementById('editNominal').addEventListener('input',function(){let val=this.value.replace(/\D/g,'');this.value=val?new Intl.NumberFormat('id-ID').format(val):'';});
         document.getElementById('btnDeleteFromEdit').addEventListener('click',function(){
             const item={row:Number(document.getElementById('editRow').value),sheetName:document.getElementById('editSheet').value,uraian:document.getElementById('editUraian').value,tanggal:document.getElementById('editTanggal').value,masuk:document.querySelector('input[name="editJenis"]:checked')?.value==='masuk'?Number(document.getElementById('editNominal').value.replace(/\./g,'')):0,keluar:document.querySelector('input[name="editJenis"]:checked')?.value==='keluar'?Number(document.getElementById('editNominal').value.replace(/\./g,'')):0};
-            closeEditModalDirect();deleteTransaction(item);
+            closeEditModalDirect(); openDeleteConfirm(item);
         });
 
 
